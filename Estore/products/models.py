@@ -64,6 +64,7 @@ class Product(models.Model):
     thumbnail = models.ImageField(upload_to="products/thumbs/%Y-%m")
 
     def __str__(self) -> str:
+        """returns the variation name."""
         return self.name
 
     def save(self, *args, **kwargs):
@@ -73,6 +74,57 @@ class Product(models.Model):
 
         super().save(*args, **kwargs)
         resize_image(self.thumbnail.path, *self._THUMBNAIL_MAX_SIZE)
+
+
+class ProductVariation(models.Model):
+    """Store the variation of products.
+    
+    Args:
+        name (CharField): the variation name.
+        size (CharField): the size information (e.g: G, XL).
+        color (CharField): information of colors.
+        description (CharField): a short description about the variation.
+        slug (SlugField): slug auto generated using the variation name.
+        product (ManyToManyField): relationship column to the product entity.
+    """
+    name = models.CharField(
+        "Nome",
+        max_length=45,
+        unique=True,
+        blank=False,
+    )
+    size = models.CharField(
+        "Tamanho",
+        max_length=4,
+        blank=False,
+    )
+    color = models.CharField(
+        "Cor",
+        max_length=20,
+        blank=False,
+    )
+    description = models.CharField(
+        "Descrição",
+        max_length=100,
+        blank=True,
+    )
+    slug = models.SlugField(unique=True)
+    product = models.ManyToManyField(
+        Product,
+        related_name='variations',
+        related_query_name='variation',
+    )
+
+    def __str__(self) -> str:
+        """returns the product variation name."""
+        return self.name
+
+    def save(self, *args, **kwargs):
+        """set the slug before to save."""
+        if not self.slug:
+            self.slug = slugify(self.name)
+        
+        super().save(*args, **kwargs)
 
 
 class Category(models.Model):
@@ -100,4 +152,5 @@ class Category(models.Model):
     )
 
     def __str__(self) -> str:
+        """returns the category name."""
         return self.name
