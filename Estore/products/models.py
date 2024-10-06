@@ -18,6 +18,9 @@ class Product(models.Model):
         slug (SlugField): the product slug. Auto created using the product name before to save.
         categories (ManyToManyField): the related name to the Category model relationship.
     """
+    class Meta:
+        verbose_name = 'Produto'
+        verbose_name_plural = 'Produtos'
 
     _MIN_NAME_LEN, _MAX_NAME_LEN = 2, 45
 
@@ -87,6 +90,10 @@ class ProductVariation(models.Model):
         slug (SlugField): slug auto generated using the variation name.
         product (ManyToManyField): relationship column to the product entity.
     """
+    class Meta:
+        verbose_name = 'Variação'
+        verbose_name_plural = 'Variações'
+
     name = models.CharField(
         "Nome",
         max_length=45,
@@ -134,6 +141,9 @@ class Category(models.Model):
         name (CharField): the name of the category. Letters, digits and spaces or "_".
         products (ManyToManyField): the relationship field to the Product model.
     """
+    class Meta:
+        verbose_name = 'Categoria'
+        verbose_name_plural = 'Categorias'
 
     name = models.CharField(
         "Nome",
@@ -148,7 +158,6 @@ class Category(models.Model):
         Product,
         related_name="categories",
         related_query_name="category",
-        null=True,
     )
 
     def __str__(self) -> str:
