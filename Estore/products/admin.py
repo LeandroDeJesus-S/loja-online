@@ -6,14 +6,14 @@ from .models import Product, Category, ProductVariation
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = [
-        'name', 'price', 'stock', 'thumbnail',
+        'name', 'slug', 'thumbnail',
     ]
 
 
 @admin.register(ProductVariation)
 class ProductVariationAdmin(admin.ModelAdmin):
     list_display = [
-        'name', 'size', 'color',
+        'name', 'size', 'color', 'price', 'stock'
     ]
 
 

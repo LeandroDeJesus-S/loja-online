@@ -13,8 +13,6 @@ class Product(models.Model):
 
     Args:
         name (CharField): the product name. Min len 2, max 45
-        price (DecimalField(10,2)): the product price.
-        stock (PositiveIntegerField, Optional): the available quantity of the product, defaults to 1.
         slug (SlugField): the product slug. Auto created using the product name before to save.
         categories (ManyToManyField): the related name to the Category model relationship.
     """
@@ -23,10 +21,6 @@ class Product(models.Model):
         verbose_name_plural = 'Produtos'
 
     _MIN_NAME_LEN, _MAX_NAME_LEN = 2, 45
-
-    _MIN_PRICE = Decimal("0")
-    _PRICE_MAX_DIGITS = 10
-    _PRICE_DECIMAL_PLACES = 2
 
     _THUMBNAIL_MAX_SIZE = 360, 360
 
@@ -49,19 +43,6 @@ class Product(models.Model):
             RegexValidator(r"^[\w ]+$", ProductMessages.INVALID_NAME),
         ],
         error_messages={"invalid": ProductMessages.INVALID_NAME},
-    )
-    price = models.DecimalField(
-        "Preço",
-        max_digits=_PRICE_MAX_DIGITS,
-        decimal_places=_PRICE_DECIMAL_PLACES,
-        blank=False,
-        validators=[MinValueValidator(_MIN_PRICE)],
-        error_messages={"invalid": ProductMessages.INVALID_PRICE},
-    )
-    stock = models.PositiveIntegerField(
-        "Estoque",
-        blank=False,
-        default=1,
     )
     slug = models.SlugField(unique=True)
     thumbnail = models.ImageField(upload_to="products/thumbs/%Y-%m")
@@ -88,11 +69,17 @@ class ProductVariation(models.Model):
         color (CharField): information of colors.
         description (CharField): a short description about the variation.
         slug (SlugField): slug auto generated using the variation name.
-        product (ManyToManyField): relationship column to the product entity.
+        price (DecimalField(10,2)): the product price.
+        stock (PositiveIntegerField, Optional): the available quantity of the product, defaults to 1.
+        products (ManyToManyField): relationship column to the product entity.
     """
     class Meta:
         verbose_name = 'Variação'
         verbose_name_plural = 'Variações'
+    
+    _PRICE_MAX_DIGITS = 10
+    _PRICE_DECIMAL_PLACES = 2
+    _MIN_PRICE = Decimal("0")
 
     name = models.CharField(
         "Nome",
@@ -116,7 +103,20 @@ class ProductVariation(models.Model):
         blank=True,
     )
     slug = models.SlugField(unique=True)
-    product = models.ManyToManyField(
+    price = models.DecimalField(
+        "Preço",
+        max_digits=_PRICE_MAX_DIGITS,
+        decimal_places=_PRICE_DECIMAL_PLACES,
+        blank=False,
+        validators=[MinValueValidator(_MIN_PRICE)],
+        error_messages={"invalid": ProductMessages.INVALID_PRICE},
+    )
+    stock = models.PositiveIntegerField(
+        "Estoque",
+        blank=False,
+        default=1,
+    )
+    products = models.ManyToManyField(
         Product,
         related_name='variations',
         related_query_name='variation',
