@@ -3,6 +3,41 @@ from django.core.validators import RegexValidator, MinLengthValidator
 
 from utils.support.messages import StoreMessages, GenericMessages
 from utils.support.func import resize_image
+from products.models import ProductVariation
+
+
+class StoreHasProduct(models.Model):
+    """the tertiary model to the relationship between store and products.
+
+    Args:
+        store (ForeignKey): store relationship field
+        product (ForeignKey): product relationship field
+        qtd (PositiveIntegerField): the quantity of the product stocked
+    """
+
+    class Meta:
+        verbose_name = "Loja com produto adquirido"
+        verbose_name_plural = "Lojas com produto adquirido"
+
+    store = models.ForeignKey(
+        "Store",
+        on_delete=models.CASCADE,
+        verbose_name="Loja",
+    )
+    product = models.ForeignKey(
+        ProductVariation,
+        on_delete=models.CASCADE,
+        verbose_name="Produto",
+    )
+    qtd = models.PositiveIntegerField(
+        "Estoque",
+        null=False,
+        default=0,
+    )
+
+    def __str__(self) -> str:
+        """returns the representation like 'store, product | qtd'"""
+        return f"{self.store}, {self.product} | {self.qtd}"
 
 
 class Store(models.Model):
@@ -48,6 +83,12 @@ class Store(models.Model):
             MinLengthValidator(_CNPJ_LEN, StoreMessages.INVALID_CNPJ),
         ],
         error_messages={"invalid": StoreMessages.INVALID_CNPJ},
+    )
+    products = models.ManyToManyField(
+        ProductVariation,
+        through=StoreHasProduct,
+        related_name="product_stores",
+        related_query_name="product_store",
     )
 
     def __str__(self) -> str:

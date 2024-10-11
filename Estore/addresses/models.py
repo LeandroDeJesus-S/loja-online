@@ -1,45 +1,70 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.core.validators import RegexValidator
 
 from store.models import Store
+from utils.support.messages import AddressMessages
 
 User = get_user_model()
 
 
 class Address(models.Model):
     """the address related model.
+
     Args:
         street (CharField): the street name.
-        state (CharField): the state name.
+        state (CharField): the state abbr (e.g: US to united states).
         city (CharField): the city name.
         postal_code (CharField): the postal code.
-        
+        country (CharField): the country abbr (e.g: CA to California)
         stores (ManyToManyField): the relationship field to the stores.
         users (ManyToManyField): the relationship field to the users.
     """
+
+    class Meta:
+        verbose_name = "Endereço"
+        verbose_name_plural = "Endereços"
+
     street = models.CharField(
-        'Rua',
+        "Rua",
         max_length=100,
     )
     state = models.CharField(
-        'Estado',
-        max_length=45
+        "Estado",
+        max_length=2,
+        validators=[
+            RegexValidator(
+                r"^[A-Za-z]{2}$",
+                AddressMessages.INVALID_STATE,
+            )
+        ],
+        help_text='Ex.: CA'
     )
     city = models.CharField(
-        'Cidade',
+        "Cidade",
         max_length=45,
     )
     postal_code = models.CharField(
-        'Código postal',
+        "Código postal",
         max_length=10,
     )
-
+    country = models.CharField(
+        "País",
+        max_length=2,
+        help_text="Ex.: US",
+        validators=[
+            RegexValidator(
+                r"^[A-Za-z]{2}$",
+                AddressMessages.INVALID_COUNTRY,
+            ),
+        ],
+    )
     stores = models.ManyToManyField(Store, through="HasAddress")
     users = models.ManyToManyField(User, through="HasAddress")
 
     def __str__(self) -> str:
-        """return the address like 'street, city - state / postal code'"""
-        return f'{self.street}, {self.city} - {self.state} / {self.postal_code}'
+        """return the address like 'street, city - state / country | postal code'"""
+        return f"{self.street}, {self.city} - {self.state} / {self.country} | {self.postal_code}"
 
 
 class HasAddress(models.Model):
@@ -51,18 +76,35 @@ class HasAddress(models.Model):
         store (ForeignKey): the relationship column that references the store.
         address (ForeignKey): the relationship column that references the address table.
     """
+
+    class Meta:
+        verbose_name = "Endereço atribuído"
+        verbose_name_plural = "Endereços atribuídos"
+
     number = models.CharField(
-        'Número',
+        "Número",
         max_length=10,
     )
     complement = models.CharField(
         "Complemento",
-        max_length=100
+        max_length=100,
+        blank=True,
     )
-    user = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True)
-    store = models.ForeignKey(Store, on_delete=models.DO_NOTHING, null=True)
-    address = models.ForeignKey(Address, on_delete=models.DO_NOTHING)
+    user = models.ForeignKey(
+        User,
+        on_delete=models.DO_NOTHING,
+        null=True,
+    )
+    store = models.ForeignKey(
+        Store,
+        on_delete=models.DO_NOTHING,
+        null=True,
+    )
+    address = models.ForeignKey(
+        Address,
+        on_delete=models.DO_NOTHING,
+    )
 
     def __str__(self) -> str:
         """returns the number + the address representation"""
-        return f'{self.number}, {self.address}'
+        return f"{self.number}, {self.address}"

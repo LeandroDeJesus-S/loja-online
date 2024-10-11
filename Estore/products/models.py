@@ -8,61 +8,9 @@ from utils.support.messages import GenericMessages, ProductMessages, CategoryMes
 from utils.support.func import resize_image
 
 
-class Product(models.Model):
-    """model that represent a product
-
-    Args:
-        name (CharField): the product name. Min len 2, max 45
-        slug (SlugField): the product slug. Auto created using the product name before to save.
-        categories (ManyToManyField): the related name to the Category model relationship.
-    """
-    class Meta:
-        verbose_name = 'Produto'
-        verbose_name_plural = 'Produtos'
-
-    _MIN_NAME_LEN, _MAX_NAME_LEN = 2, 45
-
-    _THUMBNAIL_MAX_SIZE = 360, 360
-
-    name = models.CharField(
-        "Nome",
-        max_length=_MAX_NAME_LEN,
-        blank=False,
-        unique=True,
-        validators=[
-            MinLengthValidator(
-                _MIN_NAME_LEN,
-                GenericMessages.INVALID_LEN.format_map(
-                    {
-                        "field": "nome",
-                        "min_len": _MIN_NAME_LEN,
-                        "max_len": _MAX_NAME_LEN,
-                    },
-                ),
-            ),
-            RegexValidator(r"^[\w ]+$", ProductMessages.INVALID_NAME),
-        ],
-        error_messages={"invalid": ProductMessages.INVALID_NAME},
-    )
-    slug = models.SlugField(unique=True)
-    thumbnail = models.ImageField(upload_to="products/thumbs/%Y-%m")
-
-    def __str__(self) -> str:
-        """returns the variation name."""
-        return self.name
-
-    def save(self, *args, **kwargs):
-        """add the slug by name and resize the thumbnail"""
-        if not self.slug:
-            self.slug = slugify(self.name)
-
-        super().save(*args, **kwargs)
-        resize_image(self.thumbnail.path, *self._THUMBNAIL_MAX_SIZE)
-
-
 class ProductVariation(models.Model):
     """Store the variation of products.
-    
+
     Args:
         name (CharField): the variation name.
         size (CharField): the size information (e.g: G, XL).
@@ -70,13 +18,13 @@ class ProductVariation(models.Model):
         description (CharField): a short description about the variation.
         slug (SlugField): slug auto generated using the variation name.
         price (DecimalField(10,2)): the product price.
-        stock (PositiveIntegerField, Optional): the available quantity of the product, defaults to 1.
-        products (ManyToManyField): relationship column to the product entity.
+        var_products (ManyToManyField): related name field to the Product model.
     """
+
     class Meta:
-        verbose_name = 'Variação'
-        verbose_name_plural = 'Variações'
-    
+        verbose_name = "Variação"
+        verbose_name_plural = "Variações"
+
     _PRICE_MAX_DIGITS = 10
     _PRICE_DECIMAL_PLACES = 2
     _MIN_PRICE = Decimal("0")
@@ -102,7 +50,7 @@ class ProductVariation(models.Model):
         max_length=100,
         blank=True,
     )
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(unique=True, blank=True, editable=False)
     price = models.DecimalField(
         "Preço",
         max_digits=_PRICE_MAX_DIGITS,
@@ -111,16 +59,6 @@ class ProductVariation(models.Model):
         validators=[MinValueValidator(_MIN_PRICE)],
         error_messages={"invalid": ProductMessages.INVALID_PRICE},
     )
-    stock = models.PositiveIntegerField(
-        "Estoque",
-        blank=False,
-        default=1,
-    )
-    products = models.ManyToManyField(
-        Product,
-        related_name='variations',
-        related_query_name='variation',
-    )
 
     def __str__(self) -> str:
         """returns the product variation name."""
@@ -128,10 +66,15 @@ class ProductVariation(models.Model):
 
     def save(self, *args, **kwargs):
         """set the slug before to save."""
+        print("slug before to save:", self.slug)
         if not self.slug:
             self.slug = slugify(self.name)
-        
+
         super().save(*args, **kwargs)
+
+    def clean(self) -> None:
+        # TODO: estoque da variação não pode ser maior que o estoque da loja.
+        return super().clean()
 
 
 class Category(models.Model):
@@ -139,11 +82,12 @@ class Category(models.Model):
 
     Args:
         name (CharField): the name of the category. Letters, digits and spaces or "_".
-        products (ManyToManyField): the relationship field to the Product model.
+        cat_products (ManyToManyField): related name field to the Product model.
     """
+
     class Meta:
-        verbose_name = 'Categoria'
-        verbose_name_plural = 'Categorias'
+        verbose_name = "Categoria"
+        verbose_name_plural = "Categorias"
 
     name = models.CharField(
         "Nome",
@@ -154,12 +98,103 @@ class Category(models.Model):
         blank=False,
         error_messages={"invalid": CategoryMessages.INVALID_NAME},
     )
-    products = models.ManyToManyField(
-        Product,
-        related_name="categories",
-        related_query_name="category",
-    )
 
     def __str__(self) -> str:
         """returns the category name."""
         return self.name
+
+
+class ProductHasVariation(models.Model):
+    """tertiary table of the relationship between product and product variation.
+    
+    Args:
+        product (ForeignKey): the product model reference field.
+        variation (ForeignKey): the product variation model reference field.
+        qtd (PositiveIntegerField, Optional): the available quantity of the product variation, defaults to 0.
+    """
+    product = models.ForeignKey(
+        "Product",
+        on_delete=models.DO_NOTHING,
+        verbose_name="Produto",
+    )
+    variation = models.ForeignKey(
+        ProductVariation,
+        on_delete=models.DO_NOTHING,
+        verbose_name='Variação',
+    )
+    qtd = models.PositiveIntegerField(
+        "Estoque",
+        blank=False,
+        default=0,
+    )
+
+    def __str__(self) -> str:
+        """returns the representation like 'product - variation | qtd'"""
+        return f'{self.product} - {self.variation} | {self.qtd}'
+
+
+class Product(models.Model):
+    """model that represent a product
+
+    Args:
+        name (CharField): the product name. Min len 2, max 45
+        slug (SlugField): the product slug. Auto created using the product name before to save.
+        categories (ManyToManyField): the related name to the Category model relationship.
+    """
+
+    class Meta:
+        verbose_name = "Produto"
+        verbose_name_plural = "Produtos"
+
+    _MIN_NAME_LEN, _MAX_NAME_LEN = 2, 45
+
+    _THUMBNAIL_MAX_SIZE = 360, 360
+
+    name = models.CharField(
+        "Nome",
+        max_length=_MAX_NAME_LEN,
+        blank=False,
+        unique=True,
+        validators=[
+            MinLengthValidator(
+                _MIN_NAME_LEN,
+                GenericMessages.INVALID_LEN.format_map(
+                    {
+                        "field": "nome",
+                        "min_len": _MIN_NAME_LEN,
+                        "max_len": _MAX_NAME_LEN,
+                    },
+                ),
+            ),
+            RegexValidator(r"^[\w ]+$", ProductMessages.INVALID_NAME),
+        ],
+        error_messages={"invalid": ProductMessages.INVALID_NAME},
+    )
+    slug = models.SlugField(unique=True, blank=True, editable=False)
+    thumbnail = models.ImageField(upload_to="products/thumbs/%Y-%m")
+
+    variations = models.ManyToManyField(
+        ProductVariation,
+        related_name="var_products",
+        related_query_name="var_product",
+        verbose_name="Variação",
+        through=ProductHasVariation
+    )
+    categories = models.ManyToManyField(
+        Category,
+        related_name="cat_products",
+        related_query_name="cat_product",
+        verbose_name="Categoria",
+    )
+
+    def __str__(self) -> str:
+        """returns the variation name."""
+        return self.name
+
+    def save(self, *args, **kwargs):
+        """add the slug by name and resize the thumbnail"""
+        if not self.slug:
+            self.slug = slugify(self.name)
+
+        super().save(*args, **kwargs)
+        resize_image(self.thumbnail.path, *self._THUMBNAIL_MAX_SIZE)
