@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator, MinValueValidator
 from django.db import models
 from products.models import ProductVariation
 from utils.support.messages import OrderMessages
@@ -56,6 +56,9 @@ class Order(models.Model):
         "Qtd.",
         null=False,
         default=1,
+        validators=[
+            MinValueValidator(1),
+        ],
     )
     created_at = models.DateTimeField(
         "Criada em",

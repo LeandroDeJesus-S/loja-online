@@ -2,10 +2,16 @@ from decimal import Decimal
 
 from django.db import models
 from django.utils.text import slugify
-from django.core.validators import MinLengthValidator, RegexValidator, MinValueValidator
+from django.core.validators import (
+    MinLengthValidator,
+    RegexValidator,
+    MinValueValidator,
+    validate_image_file_extension,
+)
 
 from utils.support.messages import GenericMessages, ProductMessages, CategoryMessages
 from utils.support.func import resize_image
+from utils.support.validators import FileSizeValidator
 
 
 class ProductVariation(models.Model):
@@ -15,10 +21,9 @@ class ProductVariation(models.Model):
         name (CharField): the variation name.
         size (CharField): the size information (e.g: G, XL).
         color (CharField): information of colors.
-        description (CharField): a short description about the variation.
         slug (SlugField): slug auto generated using the variation name.
         price (DecimalField(10,2)): the product price.
-        var_products (ManyToManyField): related name field to the Product model.
+        product (ForeignKey): related field to the Product model.
     """
 
     class Meta:
@@ -34,23 +39,33 @@ class ProductVariation(models.Model):
         max_length=45,
         unique=True,
         blank=False,
+        validators=[
+            RegexValidator(r"^[\w ]+$"),
+        ],
     )
     size = models.CharField(
         "Tamanho",
         max_length=4,
         blank=False,
+        help_text="Ex.: G, GG, XGG",
+        validators=[
+            RegexValidator(r"^[\w ]+$"),
+        ],
     )
     color = models.CharField(
         "Cor",
         max_length=20,
         blank=False,
+        validators=[
+            RegexValidator(r"^[A-Za-z ]+$"),
+        ],
+        help_text="apenas letras e espaços, sem acentuações (Ex.: azul e rosa)",
     )
-    description = models.CharField(
-        "Descrição",
-        max_length=100,
+    slug = models.SlugField(
+        unique=True,
         blank=True,
+        editable=False,
     )
-    slug = models.SlugField(unique=True, blank=True, editable=False)
     price = models.DecimalField(
         "Preço",
         max_digits=_PRICE_MAX_DIGITS,
@@ -58,6 +73,11 @@ class ProductVariation(models.Model):
         blank=False,
         validators=[MinValueValidator(_MIN_PRICE)],
         error_messages={"invalid": ProductMessages.INVALID_PRICE},
+    )
+    product = models.ForeignKey(
+        "Product",
+        on_delete=models.DO_NOTHING,
+        verbose_name="Produto",
     )
 
     def __str__(self) -> str:
@@ -71,10 +91,6 @@ class ProductVariation(models.Model):
             self.slug = slugify(self.name)
 
         super().save(*args, **kwargs)
-
-    def clean(self) -> None:
-        # TODO: estoque da variação não pode ser maior que o estoque da loja.
-        return super().clean()
 
 
 class Category(models.Model):
@@ -93,44 +109,16 @@ class Category(models.Model):
         "Nome",
         max_length=45,
         validators=[
-            RegexValidator(r"^[\w ]+", CategoryMessages.INVALID_NAME),
+            RegexValidator(r"^[\w ]+$", CategoryMessages.INVALID_NAME),
         ],
         blank=False,
         error_messages={"invalid": CategoryMessages.INVALID_NAME},
+        help_text="O nome deve ser alfanumérico separados por espaços ou _",
     )
 
     def __str__(self) -> str:
         """returns the category name."""
         return self.name
-
-
-class ProductHasVariation(models.Model):
-    """tertiary table of the relationship between product and product variation.
-    
-    Args:
-        product (ForeignKey): the product model reference field.
-        variation (ForeignKey): the product variation model reference field.
-        qtd (PositiveIntegerField, Optional): the available quantity of the product variation, defaults to 0.
-    """
-    product = models.ForeignKey(
-        "Product",
-        on_delete=models.DO_NOTHING,
-        verbose_name="Produto",
-    )
-    variation = models.ForeignKey(
-        ProductVariation,
-        on_delete=models.DO_NOTHING,
-        verbose_name='Variação',
-    )
-    qtd = models.PositiveIntegerField(
-        "Estoque",
-        blank=False,
-        default=0,
-    )
-
-    def __str__(self) -> str:
-        """returns the representation like 'product - variation | qtd'"""
-        return f'{self.product} - {self.variation} | {self.qtd}'
 
 
 class Product(models.Model):
@@ -140,6 +128,7 @@ class Product(models.Model):
         name (CharField): the product name. Min len 2, max 45
         slug (SlugField): the product slug. Auto created using the product name before to save.
         categories (ManyToManyField): the related name to the Category model relationship.
+        description (CharField): a short description about the variation.
     """
 
     class Meta:
@@ -148,7 +137,8 @@ class Product(models.Model):
 
     _MIN_NAME_LEN, _MAX_NAME_LEN = 2, 45
 
-    _THUMBNAIL_MAX_SIZE = 360, 360
+    _THUMBNAIL_MAX_DIM = 360, 360
+    _MAX_THUMB_SIZE = 5 * 1024  # 5KB
 
     name = models.CharField(
         "Nome",
@@ -169,22 +159,30 @@ class Product(models.Model):
             RegexValidator(r"^[\w ]+$", ProductMessages.INVALID_NAME),
         ],
         error_messages={"invalid": ProductMessages.INVALID_NAME},
+        help_text=f"min {_MIN_NAME_LEN}, max {_MAX_NAME_LEN}. Letras, números, espaços e _",
     )
     slug = models.SlugField(unique=True, blank=True, editable=False)
-    thumbnail = models.ImageField(upload_to="products/thumbs/%Y-%m")
-
-    variations = models.ManyToManyField(
-        ProductVariation,
-        related_name="var_products",
-        related_query_name="var_product",
-        verbose_name="Variação",
-        through=ProductHasVariation
+    thumbnail = models.ImageField(
+        upload_to="products/thumbs/%Y-%m",
+        validators=[
+            validate_image_file_extension,
+            FileSizeValidator(
+                size=_MAX_THUMB_SIZE,
+                msg=GenericMessages.FILE_SIZE_EXCEEDED,
+            ),
+        ],
     )
     categories = models.ManyToManyField(
         Category,
         related_name="cat_products",
         related_query_name="cat_product",
         verbose_name="Categoria",
+    )
+    description = models.TextField(
+        "Descrição",
+        max_length=500,
+        blank=True,
+        help_text="Max 500 char.",
     )
 
     def __str__(self) -> str:
@@ -197,4 +195,4 @@ class Product(models.Model):
             self.slug = slugify(self.name)
 
         super().save(*args, **kwargs)
-        resize_image(self.thumbnail.path, *self._THUMBNAIL_MAX_SIZE)
+        resize_image(self.thumbnail.path, *self._THUMBNAIL_MAX_DIM)

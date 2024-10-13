@@ -1,11 +1,18 @@
 from django.contrib import admin
 
-from .models import Product, Category, ProductVariation, ProductHasVariation
-from store.models import StoreHasProduct
+from .models import Product, Category, ProductVariation
+from store.models import StoreHasProductVariation
+from mediafiles.models import MediaFile
+
+
+class FileInline(admin.TabularInline):
+    model = MediaFile
+    extra = 1
+    exclude = ['evaluation']
 
 
 class VariationInline(admin.TabularInline):
-    model = ProductHasVariation
+    model = ProductVariation
     extra = 1
     verbose_name = 'Variação'
     verbose_name_plural = 'Variações'
@@ -19,7 +26,7 @@ class CategoryInline(admin.TabularInline):
 
 
 class StoreInline(admin.TabularInline):
-    model = StoreHasProduct
+    model = StoreHasProductVariation
     extra = 1
 
 
@@ -42,7 +49,7 @@ class ProductVariationAdmin(admin.ModelAdmin):
         "color",
         "price",
     ]
-    inlines = [StoreInline]
+    inlines = [StoreInline, FileInline]
 
 
 @admin.register(Category)

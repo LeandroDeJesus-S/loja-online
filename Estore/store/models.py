@@ -4,15 +4,16 @@ from django.core.validators import RegexValidator, MinLengthValidator
 from utils.support.messages import StoreMessages, GenericMessages
 from utils.support.func import resize_image
 from products.models import ProductVariation
+from utils.support.validators import FileSizeValidator, validate_cnpj
 
 
-class StoreHasProduct(models.Model):
-    """the tertiary model to the relationship between store and products.
+class StoreHasProductVariation(models.Model):
+    """the tertiary model to the relationship between store and product variations.
 
     Args:
-        store (ForeignKey): store relationship field
-        product (ForeignKey): product relationship field
-        qtd (PositiveIntegerField): the quantity of the product stocked
+        store (ForeignKey): store relationship field.
+        product (ForeignKey): product variation relationship field.
+        qtd (PositiveIntegerField): the quantity of the product stocked.
     """
 
     class Meta:
@@ -61,7 +62,8 @@ class Store(models.Model):
 
     _SLOGAN_MAX_LEN = 100
     _CNPJ_LEN = 14
-    _LOGO_MAX_SIZE = 360, 360
+    _LOGO_MAX_DIM = 360, 360
+    _LOGO_MAX_SIZE = 5 * 1024  # 5KB
 
     name = models.CharField(
         "Nome",
@@ -74,27 +76,43 @@ class Store(models.Model):
         ],
         error_messages={"invalid": StoreMessages.INVALID_NAME},
     )
-    slogan = models.CharField(max_length=_SLOGAN_MAX_LEN, blank=False, unique=True)
-    logo = models.ImageField(upload_to="store/logos")
+    slogan = models.CharField(
+        max_length=_SLOGAN_MAX_LEN,
+        blank=False,
+        unique=True,
+        help_text=f'max: {_SLOGAN_MAX_LEN} chars.'
+    )
+    logo = models.ImageField(
+        upload_to="store/logos",
+        validators=[
+            FileSizeValidator(
+                size=_LOGO_MAX_SIZE,
+                msg=GenericMessages.FILE_SIZE_EXCEEDED
+            ),
+        ],
+        help_text='Max: 5KB',
+    )
     cnpj = models.CharField(
         max_length=_CNPJ_LEN,
         validators=[
             RegexValidator(r"^\d+$", StoreMessages.INVALID_CNPJ),
             MinLengthValidator(_CNPJ_LEN, StoreMessages.INVALID_CNPJ),
+            validate_cnpj,
         ],
         error_messages={"invalid": StoreMessages.INVALID_CNPJ},
     )
     products = models.ManyToManyField(
         ProductVariation,
-        through=StoreHasProduct,
+        through=StoreHasProductVariation,
         related_name="product_stores",
         related_query_name="product_store",
     )
 
     def __str__(self) -> str:
+        """returns the store name."""
         return self.name
 
     def save(self, *args, **kwargs):
         """resizes the logo post saved"""
         super().save(*args, **kwargs)
-        resize_image(self.logo.path, *self._LOGO_MAX_SIZE)
+        resize_image(self.logo.path, *self._LOGO_MAX_DIM)

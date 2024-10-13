@@ -4,6 +4,7 @@ from django.core.validators import RegexValidator
 
 from store.models import Store
 from utils.support.messages import AddressMessages
+from utils.support import regex
 
 User = get_user_model()
 
@@ -28,25 +29,34 @@ class Address(models.Model):
     street = models.CharField(
         "Rua",
         max_length=100,
+        validators=[
+            RegexValidator(regex.BASIC_TEXT)
+        ],
     )
     state = models.CharField(
         "Estado",
         max_length=2,
         validators=[
             RegexValidator(
-                r"^[A-Za-z]{2}$",
+                regex.ISO3166_1_ALPHA2,
                 AddressMessages.INVALID_STATE,
-            )
+            ),
         ],
         help_text='Ex.: CA'
     )
     city = models.CharField(
         "Cidade",
         max_length=45,
+        validators=[
+            RegexValidator(regex.BASIC_TEXT),
+        ],
     )
     postal_code = models.CharField(
         "Código postal",
         max_length=10,
+        validators=[
+            RegexValidator(regex.POSTAL_CODE)
+        ]
     )
     country = models.CharField(
         "País",
@@ -54,7 +64,7 @@ class Address(models.Model):
         help_text="Ex.: US",
         validators=[
             RegexValidator(
-                r"^[A-Za-z]{2}$",
+                regex.ISO3166_1_ALPHA2,
                 AddressMessages.INVALID_COUNTRY,
             ),
         ],
@@ -84,11 +94,17 @@ class HasAddress(models.Model):
     number = models.CharField(
         "Número",
         max_length=10,
+        validators=[
+            RegexValidator(r'^[A-Za-z0-9]+$'),
+        ],
     )
     complement = models.CharField(
         "Complemento",
         max_length=100,
         blank=True,
+        validators=[
+            RegexValidator(regex.BASIC_TEXT),
+        ],
     )
     user = models.ForeignKey(
         User,

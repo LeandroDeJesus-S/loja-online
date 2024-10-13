@@ -3,6 +3,7 @@ class GenericMessages:
     INVALID_LEN = '{field} deve ter de {min_len} a {max_len} caracteres.'
     INVALID_MIN_LENGTH = '{field} deve ter no mínimo {size} caracteres.'
     INVALID_MAX_LENGTH = '{field} deve ter no máximo {size} caracteres.'
+    FILE_SIZE_EXCEEDED = 'O arquivo é muito grande.'
 
 
 class AddressMessages:
@@ -34,3 +35,9 @@ class OrderMessages:
     INVALID_ORDER_STATUS_NAME = 'O status é inválido.'
     INVALID_STRIPE_PAYMENT_ID = 'O id do pagamento é inválido.'
     INVALID_STRIPE_PAYMENT_METHOD = 'O id do método de pagamento é inválido.'
+
+
+class MediaFileMessages:
+    """messages to media files domain"""
+    BOTH_FK_SENT = 'O arquivo deve ser para avaliação ou produto, não para ambos.'
+    NO_FK_SENT = 'O arquivo deve estar relacionado a uma avaliação ou produto.'
