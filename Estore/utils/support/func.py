@@ -4,13 +4,13 @@ from pathlib import Path
 from PIL import Image
 
 
-def resize_image(img_path: str | bytes | Path, w: int, h: Optional[int] = None):
+def resize_image(img_path: str | Path, w: int, h: Optional[int] = None):
     """resize the given image.
     if the given w or h is bigger than the original value the minimum size will
     be used.
 
     Args:
-        img_path (Any): image source
+        img_path (str | Path): image source
         w (int): width
         h (int, optional): height. Defaults to None.
     """

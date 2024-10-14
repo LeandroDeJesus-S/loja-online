@@ -80,7 +80,7 @@ class Order(models.Model):
         validators=[
             RegexValidator(
                 r"^pm_[A-Za-z0-9]+$",
-                OrderMessages.INVALID_STRIPE_PAYMENT_METHOD,
+                OrderMessages.INVALID_STRIPE_PAYMENT_METHOD_ID,
             ),
         ],
     )

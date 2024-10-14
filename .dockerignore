@@ -23,3 +23,7 @@ stats
 Dockerfile
 __localcode/
 DEER.mwb
+*.ini
+*.coverage*
+*htmlcov
+*.mwb*

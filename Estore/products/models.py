@@ -8,6 +8,7 @@ from django.core.validators import (
     MinValueValidator,
     validate_image_file_extension,
 )
+from django.utils.translation import gettext_lazy as _
 
 from utils.support.messages import GenericMessages, ProductMessages, CategoryMessages
 from utils.support.func import resize_image
@@ -59,7 +60,7 @@ class ProductVariation(models.Model):
         validators=[
             RegexValidator(r"^[A-Za-z ]+$"),
         ],
-        help_text="apenas letras e espaços, sem acentuações (Ex.: azul e rosa)",
+        help_text=_("only letters and spaces, without accents (Ex.: blue and pink)"),
     )
     slug = models.SlugField(
         unique=True,
@@ -86,7 +87,6 @@ class ProductVariation(models.Model):
 
     def save(self, *args, **kwargs):
         """set the slug before to save."""
-        print("slug before to save:", self.slug)
         if not self.slug:
             self.slug = slugify(self.name)
 
@@ -113,7 +113,7 @@ class Category(models.Model):
         ],
         blank=False,
         error_messages={"invalid": CategoryMessages.INVALID_NAME},
-        help_text="O nome deve ser alfanumérico separados por espaços ou _",
+        help_text=_("The name must be alphanumeric separated by spaces or _"),
     )
 
     def __str__(self) -> str:
@@ -127,8 +127,9 @@ class Product(models.Model):
     Args:
         name (CharField): the product name. Min len 2, max 45
         slug (SlugField): the product slug. Auto created using the product name before to save.
+        thumbnail (ImageField): the main image of the product.
+        description (TextField): a description about the product.
         categories (ManyToManyField): the related name to the Category model relationship.
-        description (CharField): a short description about the variation.
     """
 
     class Meta:
@@ -159,7 +160,9 @@ class Product(models.Model):
             RegexValidator(r"^[\w ]+$", ProductMessages.INVALID_NAME),
         ],
         error_messages={"invalid": ProductMessages.INVALID_NAME},
-        help_text=f"min {_MIN_NAME_LEN}, max {_MAX_NAME_LEN}. Letras, números, espaços e _",
+        help_text=_(
+            f"min {_MIN_NAME_LEN}, max {_MAX_NAME_LEN}. Letters, numbers, spaces and _"
+        ),
     )
     slug = models.SlugField(unique=True, blank=True, editable=False)
     thumbnail = models.ImageField(
@@ -172,17 +175,17 @@ class Product(models.Model):
             ),
         ],
     )
-    categories = models.ManyToManyField(
-        Category,
-        related_name="cat_products",
-        related_query_name="cat_product",
-        verbose_name="Categoria",
-    )
     description = models.TextField(
         "Descrição",
         max_length=500,
         blank=True,
         help_text="Max 500 char.",
+    )
+    categories = models.ManyToManyField(
+        Category,
+        related_name="cat_products",
+        related_query_name="cat_product",
+        verbose_name="Categoria",
     )
 
     def __str__(self) -> str:

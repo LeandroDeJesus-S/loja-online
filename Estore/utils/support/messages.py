@@ -1,43 +1,45 @@
+from django.utils.translation import gettext_lazy as _
+
+
 class GenericMessages:
     """class to store generic message constants"""
-    INVALID_LEN = '{field} deve ter de {min_len} a {max_len} caracteres.'
-    INVALID_MIN_LENGTH = '{field} deve ter no mínimo {size} caracteres.'
-    INVALID_MAX_LENGTH = '{field} deve ter no máximo {size} caracteres.'
-    FILE_SIZE_EXCEEDED = 'O arquivo é muito grande.'
+    INVALID_LEN = '`{field}` must have between `{min_len}` and `{max_len}` characters.'
+    INVALID_MIN_LENGTH = '`{field}` must have at least `{size}` characters.'
+    INVALID_MAX_LENGTH = '`{field}` must have at most `{size}` characters.'
+    FILE_SIZE_EXCEEDED = _('the file size is too big.')
 
 
 class AddressMessages:
     """messages related to addresses"""
-    INVALID_COUNTRY = 'O país fornecido é inválido'
-    INVALID_STATE = 'Estado inválido.'
+    INVALID_COUNTRY = _('Invalid county.')
+    INVALID_STATE = _('Invalid state')
 
 
 class StoreMessages:
     """class with message constants related to the Store entity"""
-    INVALID_CNPJ = 'CPJ inválido.'
-    INVALID_NAME = 'O nome da loja é inválido'
-    INVALID_NAME_LEN = 'O nome precisa ter de {minlen} a {maxlen} caracteres.'
+    INVALID_CNPJ = _('the CPJ is invalid.')
+    INVALID_NAME = _('the store name is invalid')
 
 
 class ProductMessages:
     """messages related to the product entity"""
-    INVALID_NAME = 'Nome inválido.'
-    INVALID_PRICE = 'Preço inválido.'
+    INVALID_NAME = _('the name of the product is invalid.')
+    INVALID_PRICE = _('invalid product price.')
 
 
 class CategoryMessages:
     """messages related to the products category"""
-    INVALID_NAME = 'O nome da categoria é inválido.'
+    INVALID_NAME = _('The name of the category is invalid.')
 
 
 class OrderMessages:
     """messages related to the orders"""
-    INVALID_ORDER_STATUS_NAME = 'O status é inválido.'
-    INVALID_STRIPE_PAYMENT_ID = 'O id do pagamento é inválido.'
-    INVALID_STRIPE_PAYMENT_METHOD = 'O id do método de pagamento é inválido.'
+    INVALID_ORDER_STATUS_NAME = _('invalid status.')
+    INVALID_STRIPE_PAYMENT_ID = _('Invalid stripe payment id.')
+    INVALID_STRIPE_PAYMENT_METHOD_ID = _('The stripe payment method id is invalid.')
 
 
 class MediaFileMessages:
     """messages to media files domain"""
-    BOTH_FK_SENT = 'O arquivo deve ser para avaliação ou produto, não para ambos.'
-    NO_FK_SENT = 'O arquivo deve estar relacionado a uma avaliação ou produto.'
+    BOTH_FK_SENT = _('The file must be for either evaluation or product, not both.')
+    NO_FK_SENT = _('The file must be related to a review or product.')

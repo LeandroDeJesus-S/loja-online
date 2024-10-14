@@ -23,11 +23,19 @@ class Evaluation(models.Model):
         verbose_name_plural = 'Avaliações'
 
     class Evaluations(models.TextChoices):
-        AWFUL = "1", _("Péssimo")
-        BAD = "2", _("Ruim")
-        GOD = "3", _("Bom")
-        GREAT = "4", _("Ótimo")
-        PERFECT = "5", _("Perfeito")
+        """evaluations choices
+        Args:
+            TERRIBLE (tuple[int, str]):
+            BAD (tuple[int, str]):
+            OK (tuple[int, str]):
+            GOOD (tuple[int, str]):
+            GREAT (tuple[int, str]):
+        """
+        TERRIBLE = 1, _("Terrible")
+        BAD = 2, _("Bad")
+        OK = 3, _("Ok")
+        GOOD = 4, _("Good")
+        GREAT = 5, _("Great")
 
     evaluation = models.CharField(
         "Avaliação",

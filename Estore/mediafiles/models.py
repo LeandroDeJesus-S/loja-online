@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
+from django.utils.translation import gettext_lazy as _
 
 from evaluations.models import Evaluation
 from products.models import ProductVariation
@@ -32,9 +33,9 @@ class MediaFile(models.Model):
         "WEBM",
     ]
     _MAX_FILE_SIZE = 4 * 1024**2  # 4MB
-    _FILE_HELP_TXT = (
-        "Image ou video até 4MB com algum dos seguintes "
-        f"formatos: {', '.join(_AVAILABLE_EXTENSIONS)}."
+    _FILE_HELP_TXT = _(
+        "image or video with a maximum of 4MB and in one of "
+        f"the following formats: {', '.join(_AVAILABLE_EXTENSIONS)}."
     )
 
     file = models.FileField(
@@ -81,7 +82,7 @@ class MediaFile(models.Model):
         self.validate_foreign_keys(msg_dict)
 
         if msg_dict:
-            raise ValidationError(msg_dict)
+            raise ValidationError(msg_dict, code='invalid')
 
     def validate_foreign_keys(self, msg_dict: dict):
         """validates if both foreign keys are given together or no one
