@@ -1,10 +1,7 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from django.contrib.auth import get_user_model
 
 from orders.models import Order
-
-User = get_user_model()
 
 
 class Evaluation(models.Model):
@@ -14,33 +11,37 @@ class Evaluation(models.Model):
         evaluation (CharField): the evaluation choice of the Evaluations.
         description (TextField): the description of the evaluation.
         created_at (DateTimeField): date when the evaluation was created.
-        user (ForeignKey): the reference field to the user model.
         order (ForeignKey): the reference field to the order model.
+        
+        TERRIBLE (str): evaluation choice
+        BAD (str): evaluation choice
+        OK (str): evaluation choice
+        GOOD (str): evaluation choice
+        GREAT (str): evaluation choice
     """
 
     class Meta:
         verbose_name = 'Avaliação'
         verbose_name_plural = 'Avaliações'
 
-    class Evaluations(models.TextChoices):
-        """evaluations choices
-        Args:
-            TERRIBLE (tuple[int, str]):
-            BAD (tuple[int, str]):
-            OK (tuple[int, str]):
-            GOOD (tuple[int, str]):
-            GREAT (tuple[int, str]):
-        """
-        TERRIBLE = 1, _("Terrible")
-        BAD = 2, _("Bad")
-        OK = 3, _("Ok")
-        GOOD = 4, _("Good")
-        GREAT = 5, _("Great")
+    TERRIBLE = "1"
+    BAD = "2"
+    OK = "3"
+    GOOD = "4"
+    GREAT = "5"
+
+    EVALUATION_CHOICES = (
+        (TERRIBLE,  _("Terrible")),
+        (BAD,  _("Bad")),
+        (OK,  _("Ok")),
+        (GOOD,  _("Good")),
+        (GREAT,  _("Great")),
+    )
 
     evaluation = models.CharField(
         "Avaliação",
         max_length=1,
-        choices=Evaluations,
+        choices=EVALUATION_CHOICES,
     )
     description = models.TextField(
         'Descrição',
@@ -53,11 +54,6 @@ class Evaluation(models.Model):
         auto_now_add=True,
         editable=False
     )
-    user = models.ForeignKey(
-        User,
-        on_delete=models.DO_NOTHING,
-        verbose_name="Usuário",
-    )
     order = models.ForeignKey(
         Order,
         on_delete=models.DO_NOTHING,
@@ -66,4 +62,4 @@ class Evaluation(models.Model):
 
     def __str__(self) -> str:
         """returns the representation like 'user - order | evaluation'"""
-        return f'{self.user} - {self.order} | {self.evaluation}'
+        return f'{self.order.user} - {self.order} | {self.evaluation}'

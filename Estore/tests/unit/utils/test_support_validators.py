@@ -21,6 +21,13 @@ def test_file_size_validator_success():
         pytest.fail('ValidationError raised.')
 
 
+def test_file_size_validator_eq():
+    """test __eq__ method"""
+    fsv1 = FileSizeValidator(size=10, msg='msg')
+    fsv2 = FileSizeValidator(size=10, msg='msg')
+    assert fsv1 == fsv2
+
+
 def test_file_size_validator_fail():
     """test if raises validation error whe the file is greatest than
     the validation size
@@ -41,7 +48,7 @@ def test_file_size_validator_fail():
 
 
 @pytest.mark.parametrize(
-    'cnpj', ['19.982.055/0001-72', '74473068000124']
+    'cnpj', ['16.545.829/0001-00', '74473068000124']
 )
 def test_cnpj_validator_success(cnpj):
     """test the success cases for cnpj validator.

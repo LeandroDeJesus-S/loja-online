@@ -41,5 +41,4 @@ class OrderMessages:
 
 class MediaFileMessages:
     """messages to media files domain"""
-    BOTH_FK_SENT = _('The file must be for either evaluation or product, not both.')
-    NO_FK_SENT = _('The file must be related to a review or product.')
+    INVALID_FK_SENT = _('The file must be set to evaluation or product.')

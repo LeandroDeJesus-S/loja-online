@@ -1,5 +1,4 @@
 from django.db import models
-from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
 from django.utils.translation import gettext_lazy as _
 
@@ -22,6 +21,15 @@ class MediaFile(models.Model):
     class Meta:
         verbose_name = "Arquivo de mídia"
         verbose_name_plural = "Arquivos de mídia"
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(evaluation__isnull=True, product_variation__isnull=False)|  # type: ignore
+                      models.Q(evaluation__isnull=False, product_variation__isnull=True)&
+                      ~models.Q(evaluation__isnull=True, product_variation__isnull=True),
+                name='chk_mediafile_fks_not_given_together',
+                violation_error_message=MediaFileMessages.INVALID_FK_SENT
+            )
+        ]
 
     _AVAILABLE_EXTENSIONS = [
         "PNG",
@@ -71,35 +79,8 @@ class MediaFile(models.Model):
         pdt = f"Produto: {self.product_variation} arquivo: {self.file.name}"
         if self.evaluation is None and self.product_variation is not None:
             return pdt
+        
         elif self.evaluation is not None and self.product_variation is None:
             return ev
-        raise Exception(
-            "evaluation or product variation cannot be both None or filled, just one of them."
-        )
-
-    def clean(self) -> None:
-        msg_dict = {}
-        self.validate_foreign_keys(msg_dict)
-
-        if msg_dict:
-            raise ValidationError(msg_dict, code='invalid')
-
-    def validate_foreign_keys(self, msg_dict: dict):
-        """validates if both foreign keys are given together or no one
-        of them is given.
-
-        Args:
-            msg_dict (dict): dict with error messages for the fields.
-        """
-        eval_sent = self.evaluation is not None
-        pdt_var_sent = self.product_variation is not None
-
-        if eval_sent and pdt_var_sent:
-            msg_dict["evaluation"] = msg_dict["product_variation"] = (
-                MediaFileMessages.BOTH_FK_SENT
-            )
-
-        if not eval_sent and not pdt_var_sent:
-            msg_dict["evaluation"] = msg_dict["product_variation"] = (
-                MediaFileMessages.NO_FK_SENT
-            )
+        
+        raise Exception(MediaFileMessages.INVALID_FK_SENT)

@@ -33,6 +33,7 @@ class OrderStatus(models.Model):
     )
 
     def __str__(self) -> str:
+        """returns the order status name"""
         return self.name
 
 
@@ -40,7 +41,7 @@ class Order(models.Model):
     """the model that stores the orders of the users
     Args:
         qtd (PositiveIntegerField): the quantity of items purchased.
-        created_at (DateTimeField): the time when the order was created. Read only.
+        created_at (DateTimeField, AutoNow): the time when the order was created. Read only.
         status (ForeignKey): the relationship field to the status model.
         user (ForeignKey): the user relationship field.
         product_variation (ForeignKey): the product variation relationship field.
@@ -64,25 +65,6 @@ class Order(models.Model):
         "Criada em",
         auto_now_add=True,
         editable=False,
-    )
-    stripe_payment_id = models.CharField(
-        max_length=_STRIPE_PI_ID_MAX_LEN,
-        unique=True,
-        validators=[
-            RegexValidator(
-                r"^pi_[A-Za-z0-9]+$",
-                OrderMessages.INVALID_STRIPE_PAYMENT_ID,
-            ),
-        ],
-    )
-    stripe_payment_method_id = models.CharField(
-        max_length=_STRIPE_METHOD_ID_MAX_LEN,
-        validators=[
-            RegexValidator(
-                r"^pm_[A-Za-z0-9]+$",
-                OrderMessages.INVALID_STRIPE_PAYMENT_METHOD_ID,
-            ),
-        ],
     )
     status = models.ForeignKey(
         OrderStatus,

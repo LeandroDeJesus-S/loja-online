@@ -18,3 +18,7 @@ class EvaluationAdmin(admin.ModelAdmin):
         "order",
     ]
     inlines = [FileInline]
+
+    @admin.display(description='Usuário')
+    def user(self, obj):
+        return obj.order.user

@@ -90,6 +90,14 @@ class HasAddress(models.Model):
     class Meta:
         verbose_name = "Endereço atribuído"
         verbose_name_plural = "Endereços atribuídos"
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(user__isnull=True, store__isnull=False) | # type: ignore
+                      models.Q(user__isnull=False, store__isnull=True) |
+                      models.Q(user__isnull=False, store__isnull=False),
+                name='chk_has_address_fks_not_given_together'
+            )
+        ]
 
     number = models.CharField(
         "Número",
