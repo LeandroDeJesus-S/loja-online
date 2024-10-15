@@ -51,8 +51,6 @@ class Order(models.Model):
         verbose_name = "Pedido"
         verbose_name_plural = "Pedidos"
 
-    _STRIPE_PI_ID_MAX_LEN = _STRIPE_METHOD_ID_MAX_LEN = 32
-
     qtd = models.PositiveIntegerField(
         "Qtd.",
         null=False,
