@@ -23,6 +23,8 @@ class Evaluation(models.Model):
     class Meta:
         verbose_name = 'Avaliação'
         verbose_name_plural = 'Avaliações'
+    
+    _MAX_DESC_CHAR = 255
 
     TERRIBLE = "1"
     BAD = "2"
@@ -45,9 +47,10 @@ class Evaluation(models.Model):
     )
     description = models.TextField(
         'Descrição',
-        max_length=255,
+        max_length=_MAX_DESC_CHAR,
         null=True,
         blank=True,
+        help_text=_(f'Max. {_MAX_DESC_CHAR} chars.')
     )
     created_at = models.DateTimeField(
         "Criada em",
@@ -57,7 +60,8 @@ class Evaluation(models.Model):
     order = models.ForeignKey(
         Order,
         on_delete=models.DO_NOTHING,
-        verbose_name='Pedido'
+        verbose_name='Pedido',
+        related_query_name='order_evaluation'
     )
 
     def __str__(self) -> str:

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+
+<div class="container d-flex justify-content-center align-items-center" style="height: 80vh;">
+    <form action="" class="border border-secondary p-3">
+        <div class="form-floating mb-3">
+            <input type="email" class="form-control" id="floatingInput" placeholder="name@example.com">
+            <label for="floatingInput">Nome de usuário</label>
+            <div class="invalid-feedback">Sorry, that username's taken. Try another?</div>
+          </div>
+          <div class="form-floating">
+            <input type="password" class="form-control" id="floatingPassword" placeholder="Password">
+            <label for="floatingPassword">Senha</label>
+            <div class="invalid-feedback">Sorry, that username's taken. Try another?</div>
+          </div>
+    </form>
+</div>
+
+
+{% endblock content %}

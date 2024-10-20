@@ -1,0 +1,34 @@
+{% load basestore %}
+
+
+<div class="d-flex justify-content-center">
+    {% if page_obj.paginator.num_pages > 1 %}
+
+        <ul class="pagination pagination-sm">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% get_sorting page=page_obj.previous_page_number ordering=request.GET.ordering search=request.GET.search %}">&laquo;</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?{% get_sorting page=page_obj.number|add:"-1" ordering=request.GET.ordering search=request.GET.search %}">{{page_obj.number|add:"-1"}}</a>
+                </li>
+            {% endif %}
+            
+            
+            <li class="page-item active">
+                <a class="page-link" href="?{% get_sorting page=page_obj.number ordering=request.GET.ordering search=request.GET.search %}">{{page_obj.number}}</a>
+            </li>
+
+
+            
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% get_sorting page=page_obj.number|add:"1" ordering=request.GET.ordering search=request.GET.search %}">{{page_obj.number|add:"1"}}</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?{% get_sorting page=page_obj.next_page_number ordering=request.GET.ordering search=request.GET.search %}">&raquo;</a>
+                </li>
+        {% endif %}
+        </ul>
+    {% endif %}
+  </div>

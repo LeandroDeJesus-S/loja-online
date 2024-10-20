@@ -23,9 +23,11 @@ class MediaFile(models.Model):
         verbose_name_plural = "Arquivos de mídia"
         constraints = [
             models.CheckConstraint(
-                condition=models.Q(evaluation__isnull=True, product_variation__isnull=False)|  # type: ignore
-                      models.Q(evaluation__isnull=False, product_variation__isnull=True)&
-                      ~models.Q(evaluation__isnull=True, product_variation__isnull=True),
+                condition=(  # type: ignore
+                    models.Q(evaluation__isnull=True, product_variation__isnull=False)|
+                    models.Q(evaluation__isnull=False, product_variation__isnull=True)&
+                    ~models.Q(evaluation__isnull=True, product_variation__isnull=True)
+                ),
                 name='chk_mediafile_fks_not_given_together',
                 violation_error_message=MediaFileMessages.INVALID_FK_SENT
             )
@@ -69,6 +71,7 @@ class MediaFile(models.Model):
         on_delete=models.DO_NOTHING,
         null=True,
         verbose_name="Produto",
+        related_name='product_variation_mediafiles'
     )
 
     def __str__(self) -> str:

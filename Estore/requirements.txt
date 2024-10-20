@@ -1,4 +1,12 @@
 Django>=5.1.1,<5.2
+django-allauth>=65.0.2,<65.1
 psycopg2-binary>=2.9.9,<3.0
 python-dotenv>=1.0.1,<1.1
 pillow>=10.4.0,<10.5
+requests>=2.32.3,<2.33
+requests-oauthlib>=2.0.0,<2.1
+oauthlib>=3.2.2,<3.3
+PyJWT>=2.9.0,<3
+tomli>=2.0.2,<2.1
+cryptography>=43.0.1,<43.1
+django-bootstrap5==24.3

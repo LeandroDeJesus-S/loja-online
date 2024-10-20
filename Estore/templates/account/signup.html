@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load allauth i18n %}
+{% load django_bootstrap5 %}
+
+{% block head_title %}
+    {% trans "Signup" %}
+{% endblock head_title %}
+{% block content %}
+
+
+    {% if not SOCIALACCOUNT_ONLY %}
+        <div class="container d-flex justify-content-center align-items-center py-2" style="min-height: 80vh;">
+            <form action="{% url 'account_signup' %}" method="post" tags="entrance,signup" class="border border-secondary rounded p-3">{% csrf_token %}
+                {% bootstrap_messages %}
+                <p>
+                    {% url 'account_login' as login_url %}
+                    {% blocktrans with login_url=login_url %} Already have an account? <a href={{ login_url }}>Sign In</a>. {% endblocktrans %}
+                </p>
+
+                <!-- {% bootstrap_form form layout='floating' %} -->
+                <div class="row row-cols-1 row-cols-sm-2">
+                    {% for field in form %}
+                        <div class="col">
+                            <div class="form-floating mb-3">
+                                {% bootstrap_field field layout='floating' show_help=False %}
+                                {% if field.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ field.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+
+
+                {% if SOCIALACCOUNT_ENABLED %}
+                    {% include "socialaccount/snippets/login.html" with page_layout="entrance" %}
+                {% endif %}
+                <div class="d-flex justify-content-center pt-2">
+                    <button class="btn btn-sm btn-primary" type="submit" tags="prominent,login">{% trans "Sign In" %}</button>
+                </div>
+            </form>
+        </div>
+    {% endif %}
+
+    {% if PASSKEY_SIGNUP_ENABLED %}
+        {% element hr %}
+        {% endelement %}
+        {% element button href=signup_by_passkey_url tags="prominent,signup,outline,primary" %}
+            {% trans "Sign up using a passkey" %}
+        {% endelement %}
+    {% endif %}
+{% endblock content %}

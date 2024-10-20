@@ -1,5 +1,5 @@
 from django.db import models
-from django.core.validators import RegexValidator, MinLengthValidator
+from django.core.validators import RegexValidator, MinLengthValidator, validate_image_file_extension
 from django.utils.translation import gettext_lazy as _
 
 from utils.support.messages import StoreMessages, GenericMessages
@@ -9,7 +9,8 @@ from utils.support.validators import FileSizeValidator, validate_cnpj
 
 
 class StoreHasProductVariation(models.Model):
-    """the tertiary model to the relationship between store and product variations.
+    """the tertiary model to the relationship between store and product
+    variations.
 
     Args:
         store (ForeignKey): store relationship field.
@@ -30,6 +31,8 @@ class StoreHasProductVariation(models.Model):
         ProductVariation,
         on_delete=models.CASCADE,
         verbose_name="Produto",
+        related_name='product_stores',
+        related_query_name='product_store'
     )
     qtd = models.PositiveIntegerField(
         "Estoque",
@@ -65,7 +68,7 @@ class Store(models.Model):
     _SLOGAN_MAX_LEN = 100
     _CNPJ_LEN = 14
     _LOGO_MAX_DIM = 360, 360
-    _LOGO_MAX_SIZE = 5 * 1024  # 5KB
+    _LOGO_MAX_SIZE = 5 * 1024 ** 2  # 5MB
 
     name = models.CharField(
         "Nome",
@@ -73,7 +76,7 @@ class Store(models.Model):
         blank=False,
         unique=True,
         validators=[
-            RegexValidator(r"^[\w ]+$", StoreMessages.INVALID_NAME),
+            RegexValidator(r"^[\w \.]+$", StoreMessages.INVALID_NAME),
             MinLengthValidator(_NAME_MIN_LEN, _NAME_LEN_ERR_MSG),
         ],
         error_messages={"invalid": StoreMessages.INVALID_NAME},
@@ -82,7 +85,7 @@ class Store(models.Model):
         max_length=_SLOGAN_MAX_LEN,
         blank=False,
         unique=True,
-        help_text=f'max: {_SLOGAN_MAX_LEN} chars.'
+        help_text=_(f'max: {_SLOGAN_MAX_LEN} chars.')
     )
     logo = models.ImageField(
         upload_to="store/logos",
@@ -91,6 +94,7 @@ class Store(models.Model):
                 size=_LOGO_MAX_SIZE,
                 msg=GenericMessages.FILE_SIZE_EXCEEDED
             ),
+            validate_image_file_extension
         ],
         help_text='Max: 5KB',
     )
@@ -106,8 +110,8 @@ class Store(models.Model):
     products = models.ManyToManyField(
         ProductVariation,
         through=StoreHasProductVariation,
-        related_name="product_stores",
-        related_query_name="product_store",
+        related_name="product_has_stores",
+        related_query_name="product_has_store",
     )
 
     def __str__(self) -> str:
@@ -116,5 +120,6 @@ class Store(models.Model):
 
     def save(self, *args, **kwargs):
         """resizes the logo post saved"""
+        print(self.logo)
         super().save(*args, **kwargs)
         resize_image(self.logo.path, *self._LOGO_MAX_DIM)

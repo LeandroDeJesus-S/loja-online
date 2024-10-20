@@ -29,7 +29,9 @@ class OrderStatus(models.Model):
                 OrderMessages.INVALID_ORDER_STATUS_NAME,
             )
         ],
-        error_messages={"invalid": OrderMessages.INVALID_ORDER_STATUS_NAME},
+        error_messages={
+            "invalid": OrderMessages.INVALID_ORDER_STATUS_NAME,
+        },
     )
 
     def __str__(self) -> str:
@@ -50,13 +52,15 @@ class Order(models.Model):
     class Meta:
         verbose_name = "Pedido"
         verbose_name_plural = "Pedidos"
+    
+    _MIN_QTD = 1
 
     qtd = models.PositiveIntegerField(
         "Qtd.",
         null=False,
-        default=1,
+        default=_MIN_QTD,
         validators=[
-            MinValueValidator(1),
+            MinValueValidator(_MIN_QTD),
         ],
     )
     created_at = models.DateTimeField(
@@ -77,6 +81,7 @@ class Order(models.Model):
         ProductVariation,
         on_delete=models.DO_NOTHING,
         verbose_name="Variação",
+        related_query_name='product_variation_order'
     )
 
     def __str__(self) -> str:

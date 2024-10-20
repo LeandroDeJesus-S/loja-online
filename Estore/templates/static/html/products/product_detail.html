@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container-fluid py-2">
+    <!-- Variation color tabs -->
+    <ul class="nav nav-pills mb-3 overflow-auto flex-nowrap" id="pills-tab" role="tablist" style="white-space: nowrap;">
+        {% for var in product.product_variations.all %}
+            <li class="nav-item text-truncate" role="presentation">
+                <button class="nav-link text-uppercase px-3 pb-3 pt-1 {% if forloop.first %}active{% endif %}" 
+                        id="pills-{{ var.slug }}-tab" 
+                        data-bs-toggle="pill" 
+                        data-bs-target="#pills-{{ var.slug }}" 
+                        type="button" role="tab" 
+                        aria-controls="pills-{{ var.slug }}" 
+                        aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+                        style="
+                        background-color: {{ var.color }};
+                        color: {% if var.color == '#ffffff' %}black {% else %} white {% endif %}; 
+                        {% if forloop.first %}border: gray solid 3px;{% endif %};
+                        height: 30px
+                        ">
+                    {{var.size}}
+                </button>
+            </li>
+        {% endfor %}
+    </ul>
+    <!-- Variation color tabs end -->
+    
+    <div class="tab-content" id="pills-tabContent">
+        {% for var in product.product_variations.all %}
+            <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" 
+                id="pills-{{ var.slug }}" 
+                role="tabpanel" 
+                aria-labelledby="pills-{{ var.slug }}-tab">
+
+                <!-- Carousel for variation -->
+                <div id="carousel-{{ var.slug }}" class="carousel slide" data-bs-theme="dark">
+                    <div class="carousel-inner" >
+                        {% for mediafile in var.product_variation_mediafiles.all %}
+                            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                <div class="d-flex justify-content-center">
+                                    <img src="{{ mediafile.file.url }}" class="img-fluid" style="max-height: 500px;" alt="...">
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="carousel-item active">
+                                <div class="d-flex justify-content-center">
+                                    <img src="{{ product.thumbnail.url }}" class="img-fluid" style="max-height: 500px;" alt="...">
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carousel-{{ var.slug }}" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carousel-{{ var.slug }}" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+                <!-- Carousel for variation end -->
+
+                <!-- Variation info -->
+                 <div class="container">
+                     <p class="fs-5 text-uppercase">{{ product.name }}</p>
+                        {% for store in var.product_stores.all %}
+                            {% if store.store.name == 'VEST.ly' %}
+                               <p>Stock available: {{store.qtd}}</p>
+                            {% endif %}
+                        {% endfor %}
+
+                        <ul class="list-group list-group-horizontal overflow-auto flex-nowrap">
+                            {% for category in product.categories.all %}
+                                <li class="list-group-item"><a href="#">{{category}}</a></li>
+                            {% endfor %}
+                        </ul>
+
+                     <p class="fs-5">{{ var.name }}</p>
+                     <a href="#" class="btn text-light mt-2" style="background-color: {{ var.color }};">Buy ${{var.price}}</a>
+                     <a href="#" class="btn text-light mt-2" style="background-color: {{ var.color }};">Add to cart <i class="bi bi-bag-plus"></i></a>
+                 </div>
+                 <!-- Variation info end -->
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<p>{{ product.description }}</p>
+
+
+
+
+
+
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const navLinks = document.querySelectorAll('.nav-link');
+    
+        navLinks.forEach((link) => {
+            link.addEventListener('show.bs.tab', (event) => {
+                navLinks.forEach((item) => item.style.border = '');
+    
+                // Pegar a cor da variação e aplicar no botão ativo
+                const target = event.target;
+                const color = document.querySelector(target.getAttribute('data-bs-target')).querySelector('.btn').style.backgroundColor;
+                target.style.border = 'gray solid 3px';
+            });
+        });
+    });
+</script>
+    
+
+{% endblock content %}

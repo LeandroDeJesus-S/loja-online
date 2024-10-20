@@ -1,0 +1,60 @@
+.card.product-card:hover {
+    scale: 105%;
+    transition: scale 200ms linear 0s;
+}
+
+.card-title {
+    font-size: .7rem;
+}
+.card-text {
+    font-size: .75rem;
+}
+
+.nav-search-container {
+    /* width: 15rem; */
+    border-radius: 30px;
+    transition: 500ms;
+}
+.nav-search-container:hover {
+    outline: var(--bs-dark) solid 5px;
+    transition: outline 100ms linear 0s;
+}
+
+.search-input {
+    outline: none;
+}
+
+.search-input::placeholder {
+    padding-left: 10px;
+}
+
+
+
+/* @media (min-width: 576px) {
+
+}
+
+/* // Medium devices (tablets, 768px and up) */
+/* @media (min-width: 768px) {
+
+} */
+
+/* // Large devices (desktops, 992px and up) */
+/* @media (min-width: 992px) {
+
+} */
+
+/* // X-Large devices (large desktops, 1200px and up) */
+/* @media (min-width: 1200px) { */
+
+/* } */
+
+/* // XX-Large devices (larger desktops, 1400px and up) */
+@media (min-width: 1400px) {
+    .card-title {
+        font-size: .9rem;
+    }
+    .card-text {
+        font-size: 1rem;
+    }
+}

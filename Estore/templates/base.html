@@ -1,0 +1,130 @@
+{% load static %}
+{% load i18n %}
+{% load django_bootstrap5 %}
+{% load basestore %}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <meta name="og:description" content="Loja de roupas">
+    <meta name="description" content="Loja de roupas">
+    
+    <!--bootstrap-->
+    {% bootstrap_css %}
+        
+    <!--bs icons-->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+
+    <title>Olá, mundo!</title>
+</head>
+
+<body class="mw-100">
+
+    <header>
+        {% block header %}
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary" data-bs-theme="dark">
+            <div class="container-fluid">
+                <div class="row row-cols-3 vw-100 justify-content-center align-items-center">
+                    <div class="col-4 col-md-2 ps-2">
+                        <a class="navbar-brand" href="/">
+                            VEST.ly
+                        </a>
+                    </div>
+                    <div class="col-5 col-md-5 d-flex justify-content-center px-0">
+                        <a class="nav-link text-light w-75">
+                            <form action="?{% get_sorting ordering=request.GET.ordering search=request.GET.search %}" method="get">
+                                <div class="d-flex py-1 nav-search-container container-fluid border border-secondary">
+                                    <button type="submit" class="bg-transparent border-0"><i class="bi bi-search my-auto"></i></button>
+                                    <div class="vr ms-2"></div>
+                                    <input 
+                                    type="text" name="search"
+                                    class="search-input ms-2 bg-transparent border-0 w-100" 
+                                    placeholder="pesquisar..."
+                                    value={{request.GET.search}}>
+                                </div>
+                            </form>
+                        </a>
+                    </div>
+
+                    <div class="col-3 col-md-4 d-inline-flex justify-content-end me-0 pe-2">
+                        <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas"
+                        data-bs-target="#offcanvasDarkNavbar" aria-controls="offcanvasDarkNavbar"
+                        aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                        </button>
+
+                        <div class="offcanvas offcanvas-end text-bg-dark" tabindex="-1" id="offcanvasDarkNavbar"
+                            aria-labelledby="offcanvasDarkNavbarLabel">
+                            <div class="offcanvas-header">
+                                <h5 class="offcanvas-title text-light" id="offcanvasDarkNavbarLabel">VEST.ly</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div class="offcanvas-body">
+                                
+                                <ul class="navbar-nav justify-content-end flex-grow-1">
+
+                                    <li class="nav-item m-0">
+                                        <a class="nav-link" href="#"
+                                            aria-expanded="false">
+                                            <i class="bi bi-cart4 text-light"></i>
+                                        </a>
+                                    </li>
+
+                                    <li class="nav-item m-0">
+                                        <a class="nav-link {% if request.path == "/" %} active {% endif %}" aria-current="page" href="/">{% trans "Home" %}</a>
+                                    </li>
+                                                                        
+                                    {% if not request.user.is_authenticated %}
+                                        <li class="nav-item m-0">
+                                            {% url "account_login" as signin_url %}
+                                            <a class="nav-link {% if request.path == signin_url %} active {% endif %}" href="{% url "account_login" %}">{% trans "Sign In" %}</a>
+                                        </li>
+                                        <li class="nav-item m-0">
+                                            {% url "account_signup" as signup_url %}
+                                            <a class="nav-link {% if request.path == signup_url %} active {% endif %}" href="{% url "account_signup" %}">{% trans "Sign Up" %}</a>
+                                        </li>
+                                    {% else %}
+                                        <li class="nav-item m-0">
+                                            {% url "account_signup" as signup_url %}
+                                            <a class="nav-link" href="{% url "account_logout" %}">{% trans "Sign Out" %}</a>
+                                        </li>
+                                    {% endif %}
+                                    <!--  -->
+                                </ul>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </nav>
+        {% endblock header %}
+    </header>
+
+    <main>
+        {% block content %}{% endblock content %}
+
+        {% include "partials/_pagination.html" %}
+    </main>
+
+    <footer>
+        {% block footer %}
+        <p class="text-center">&copy; Loja online 2024. Todos os direitos reservados.</p>
+        {% endblock footer %}
+    </footer>
+
+
+    {% bootstrap_javascript %}
+
+</body>
+
+</html>

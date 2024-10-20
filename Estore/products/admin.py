@@ -1,11 +1,16 @@
+from typing import Any
 from django.contrib import admin
+from django.db import models
+from django.forms.models import ModelForm
+from django.forms.widgets import Input
+from django.http import HttpRequest
 
 from .models import Product, Category, ProductVariation
 from store.models import StoreHasProductVariation
 from mediafiles.models import MediaFile
 
 
-class FileInline(admin.TabularInline):
+class ProductVariationFileInline(admin.TabularInline):
     model = MediaFile
     extra = 1
     exclude = ['evaluation']
@@ -30,6 +35,15 @@ class StoreInline(admin.TabularInline):
     extra = 1
 
 
+class ProductVariationForm(ModelForm):
+    class Meta:
+        model = ProductVariation
+        exclude = ()
+        widgets = {
+            'color': Input({'type': 'color'})
+        }
+
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = [
@@ -49,7 +63,8 @@ class ProductVariationAdmin(admin.ModelAdmin):
         "color",
         "price",
     ]
-    inlines = [StoreInline, FileInline]
+    inlines = [StoreInline, ProductVariationFileInline]
+    form = ProductVariationForm
 
 
 @admin.register(Category)

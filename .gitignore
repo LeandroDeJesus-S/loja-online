@@ -3,3 +3,7 @@ data/
 *__pyc*
 venv
 *.mwb*
+*.coverage*
+*.ini
+*.pytest_cache
+*htmlcov

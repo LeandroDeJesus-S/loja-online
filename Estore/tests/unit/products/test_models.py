@@ -58,6 +58,14 @@ def test_product_slug_create_post_save(memory_upload_img_file):
     assert product.slug == 'testing-slug'
 
 
+@pytest.mark.django_db
+def test_product_listing_all_return_products_with_available_stock(two_products_one_available):
+    all_products = Product.objects.all()
+    available_products = Product.listing.all()
+    assert all_products.count() == 2
+    assert available_products.count() == 1
+
+
 def test_category_str_method():
     """test the return of the __str__ method"""
     cat = Category(name='test')

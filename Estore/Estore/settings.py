@@ -41,12 +41,26 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    "django.contrib.postgres",
+
+    'django_bootstrap5',
+    
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+
     'store',
     'products',
     'addresses',
     'orders',
     'evaluations',
     'mediafiles',
+]
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
 MIDDLEWARE = [
@@ -57,6 +71,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = 'Estore.urls'
@@ -136,11 +152,58 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = DATA_DIR / 'static'
+STATICFILES_DIRS = [
+    BASE_DIR / 'templates' / 'static'
+]
 
 MEDIA_URL = 'media/'
 MEDIA_ROOT = DATA_DIR / 'media/'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Django AllAuth
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "APPS": [
+            {
+                "client_id": os.getenv('GOOGLE_API_CLIENT', 'change-me'),
+                "secret": os.getenv('GOOGLE_API_SECRET', 'change-me'),
+                "key": ""
+            },
+        ],
+        "SCOPE": [
+            "profile",
+            "email",
+        ],
+        "AUTH_PARAMS": {
+            "access_type": "online",
+        },
+    }
+}
+ACCOUNT_FORMS = {
+    'signup': 'Estore.forms.CustomSignupForm',
+}
+SOCIALACCOUNT_LOGIN_ON_GET = True 
+LOGIN_REDIRECT_URL = '/'
+
+
+# Django Bootstrap5
+BOOTSTRAP5 = {
+    "theme_url": "https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/lux/bootstrap.min.css",
+    'javascript_in_head': False,
+    "css_url": {
+        "url": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css",
+        "integrity": "sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH",
+        "crossorigin": "anonymous",
+    },
+    "javascript_url": {
+        "url": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js",
+        "integrity": "sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz",
+        "crossorigin": "anonymous",
+    },
+}

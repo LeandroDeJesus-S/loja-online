@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+
+<!-- ordering select -->
+<form method="get" id="order-select-form">
+    <input type="hidden" name="search" value="{{ request.GET.search }}">
+    
+    <select class="form-select" name="ordering" aria-label="Default select example" onchange="document.getElementById('order-select-form').submit();">
+        <option value="new" {% if request.GET.ordering == 'new' %}selected{% endif %}>{% trans 'Newest' %}</option>
+        <option value="less_price" {% if request.GET.ordering == 'less_price' %}selected{% endif %}>{% trans 'Less price' %}</option>
+        <option value="greatest_price" {% if request.GET.ordering == 'greatest_price' %}selected{% endif %}>{% trans 'Greatest price' %}</option>
+        <option value="less_eval" {% if request.GET.ordering == 'less_eval' %}selected{% endif %}>{% trans 'Less evaluation' %}</option>
+        <option value="greatest_eval" {% if request.GET.ordering == 'greatest_eval' %}selected{% endif %}>{% trans 'Greatest evaluation' %}</option>
+    </select>
+</form>
+<!-- ordering select -->
+
+<div class="container-fluid p-3" style="min-height: 70vh;">
+    
+    <div class="row row-cols-3 row-cols-sm-4 row-cols-md-5 row-cols-lg-7 g-2">
+        {% for product in products %}
+            <div class="col">
+                <div class="card product-card h-100 p-1 bg-secondary">
+                    <a href="{% url 'products:product_detail' product.slug %}" class="text-decoration-none">
+                        <img class="card-img-top img-fluid object-fit-contain" src="{{product.thumbnail.url}}" alt="filtro">                
+                        <div class="card-body p-1 pt-2">
+                            <h6 class="card-title text-primary-emphasis">{{product.name}}</h6>
+                            <p class="card-text text-dark-emphasis"><span class="tex-success">&starf;&starf;&starf;&starf;&starf;</span></p>
+                            <p class="card-text">R$ {{product.mean_price}}</p>
+                        </div>
+                    </a>
+                </div>
+            </div> 
+        {% endfor %}
+    
+    </div>
+</div>
+
+
+{% endblock content %}

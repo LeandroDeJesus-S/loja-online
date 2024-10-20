@@ -10,7 +10,7 @@ def test_address_str_method():
         street='street',
         state='ST',
         city='city',
-        postal_code='12345687890',  # TODO: alter on create validation
+        postal_code='12345687890',
         country='CO',
     )
     expected = f"{addrss.street}, {addrss.city} - {addrss.state} / {addrss.country} | {addrss.postal_code}"

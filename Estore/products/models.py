@@ -10,7 +10,11 @@ from django.core.validators import (
 )
 from django.utils.translation import gettext_lazy as _
 
-from utils.support.messages import GenericMessages, ProductMessages, CategoryMessages
+from utils.support.messages import (
+    GenericMessages,
+    ProductMessages,
+    CategoryMessages,
+)
 from utils.support.func import resize_image
 from utils.support.validators import FileSizeValidator
 
@@ -25,6 +29,8 @@ class ProductVariation(models.Model):
         slug (SlugField): slug auto generated using the variation name.
         price (DecimalField(10,2)): the product price.
         product (ForeignKey): related field to the Product model.
+
+        
     """
 
     class Meta:
@@ -58,7 +64,7 @@ class ProductVariation(models.Model):
         max_length=20,
         blank=False,
         validators=[
-            RegexValidator(r"^[A-Za-z ]+$"),
+            # RegexValidator(r"^[A-Za-z ]+$"),
         ],
         help_text=_("only letters and spaces, without accents (Ex.: blue and pink)"),
     )
@@ -79,6 +85,8 @@ class ProductVariation(models.Model):
         "Product",
         on_delete=models.DO_NOTHING,
         verbose_name="Produto",
+        related_name='product_variations',
+        related_query_name='product_variation',
     )
 
     def __str__(self) -> str:
@@ -121,6 +129,14 @@ class Category(models.Model):
         return self.name
 
 
+class ProductListManager(models.Manager):
+    def get_queryset(self):
+        """return the products that have available stock"""
+        qs = super().get_queryset()
+        qs = qs.filter(product_variation__product_store__qtd__gte=1).distinct()        
+        return qs
+        
+
 class Product(models.Model):
     """model that represent a product
 
@@ -139,7 +155,12 @@ class Product(models.Model):
     _MIN_NAME_LEN, _MAX_NAME_LEN = 2, 45
 
     _THUMBNAIL_MAX_DIM = 360, 360
-    _MAX_THUMB_SIZE = 5 * 1024  # 5KB
+    _MAX_THUMB_SIZE = 5 * 1024 ** 2  # 5MB
+
+    _MAX_DESC_CHAR = 500
+
+    objects = models.Manager()
+    listing = ProductListManager()
 
     name = models.CharField(
         "Nome",
@@ -177,9 +198,9 @@ class Product(models.Model):
     )
     description = models.TextField(
         "Descrição",
-        max_length=500,
+        max_length=_MAX_DESC_CHAR,
         blank=True,
-        help_text="Max 500 char.",
+        help_text=_(f"Max {_MAX_DESC_CHAR} char."),
     )
     categories = models.ManyToManyField(
         Category,
@@ -199,3 +220,10 @@ class Product(models.Model):
 
         super().save(*args, **kwargs)
         resize_image(self.thumbnail.path, *self._THUMBNAIL_MAX_DIM)
+
+    @property
+    def mean_price(self):
+        """return the mean price of the variations"""
+        if hasattr(self, 'product_variations'):
+            avg_price = self.product_variations.aggregate(avg_price=models.Avg('price')).get('avg_price')  # type: ignore
+            return round(avg_price, 2) if avg_price is not None else float('inf')
