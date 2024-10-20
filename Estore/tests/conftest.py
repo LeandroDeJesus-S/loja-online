@@ -3,37 +3,37 @@ from io import BytesIO
 
 import pytest
 from addresses.models import Address
-from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.core.files.uploadedfile import SimpleUploadedFile
 from evaluations.models import Evaluation
 from faker import Faker
 from orders.models import Order, OrderStatus
 from PIL import Image
-from products.models import Product, ProductVariation
+from products.models import Product, ProductVariation, Category
 from store.models import Store
 
 
 @pytest.fixture
-def memory_upload_img_file() -> InMemoryUploadedFile:
-    """return an img object instance of the InMemoryUploadedFile class"""
+def uploaded_img_file() -> SimpleUploadedFile:
+    """return an img object instance of the SimpleUploadedFile class"""
     image = Image.new("RGB", (200, 300), "green")
     buffer = BytesIO()
     image.save(buffer, "JPEG")
 
-    file = InMemoryUploadedFile(
-        buffer, None, "upload.jpeg", "image/jpeg", buffer.getbuffer().nbytes, None
+    file = SimpleUploadedFile(
+        'test_img.jpeg', buffer.getbuffer(), "image/jpeg"
     )
     return file
 
 
 @pytest.fixture
-def store(db, memory_upload_img_file):
+def store(db, uploaded_img_file):
     """return an instance of Store model with name `test store` and
     no products.
     """
     s = Store(
         name="test store",
         slogan="store to tests",
-        logo=memory_upload_img_file,
+        logo=uploaded_img_file,
         cnpj="57207196000107",
     )
     s.save()
@@ -41,17 +41,17 @@ def store(db, memory_upload_img_file):
 
 
 @pytest.fixture
-def product(db, memory_upload_img_file: InMemoryUploadedFile) -> Product:
+def product(db, uploaded_img_file: SimpleUploadedFile) -> Product:
     """returns an instance of the product model.
 
     Args:
-        dumb_upload_file (InMemoryUploadedFile): file to use like the logo
+        dumb_upload_file (SimpleUploadedFile): file to use like the logo
 
     Returns:
         Product: instance of a product
     """
     pdt = Product(
-        name="short", description="short test", thumbnail=memory_upload_img_file
+        name="short", description="short test", thumbnail=uploaded_img_file
     )
     pdt.save()
     pdt.refresh_from_db()
@@ -132,14 +132,14 @@ def address(db):
 
 @pytest.fixture
 def two_products_one_available(
-    db, store: Store, product_variation: ProductVariation, memory_upload_img_file
+    db, store: Store, product_variation: ProductVariation, uploaded_img_file
 ):
     """creates two products which just one has available stock"""
 
     store.products.add(product_variation, through_defaults={"qtd": 1})
 
     pdt = Product(
-        name="short2", description="short test2", thumbnail=memory_upload_img_file
+        name="short2", description="short test2", thumbnail=uploaded_img_file
     )
     pdt.save()
     var = ProductVariation(
@@ -155,72 +155,90 @@ def two_products_one_available(
 
 
 @pytest.fixture
-def product_sorting_samples(
+def product_samples(
     db,
     faker: Faker,
-    memory_upload_img_file,
-    processing_order_status,
+    uploaded_img_file: SimpleUploadedFile,
+    processing_order_status: OrderStatus,
     admin_user,
     store: Store,
+    settings,
 ):
-    """populates the database with 2 product samples
-    having 'prod 1' with price equals to 100 and a bad evaluation
-    and the 'prod 2' with price 50 and a god evaluation
+    """populates the database with 3 product samples
+    named 'Female T-Shirt', 'Male T-Shirt' and 'Kids doll'.
+    3 product variations (one for each product) named 'prod var 1/2/3'
+    and prices 50, 100 and 150.
+
+    each one have an order and an evaluation (BAD, GOOD and GREAT respectively).
     """
-    pdts = Product.objects.bulk_create([
-        Product(
-            name="prod 1",
-            thumbnail=memory_upload_img_file,
-            slug='slug-1',
-        ),
-        Product(
-            name="prod 2",
-            thumbnail=memory_upload_img_file,
-            slug='slug-2',
-        ),
-    ])
-    pdt_vars = ProductVariation.objects.bulk_create([
-        ProductVariation(
-            name="prod var 1",
-            size=faker.random_letter(),
-            color=faker.color_name(),
-            price=100,
-            product=pdts[0],
-            slug='slug-1',
-        ),
-        ProductVariation(
-            name="prod var 2",
-            size=faker.random_letter(),
-            color=faker.color_name(),
-            price=50,
-            product=pdts[1],
-            slug='slug-2',
-        ),
-    ])
+    pdts = Product.objects.bulk_create(
+        [
+            Product(
+                name="Female T-Shirt",
+                thumbnail=uploaded_img_file,
+                slug="slug-1",
+            ),
+            Product(
+                name="Male T-Shirt",
+                thumbnail=uploaded_img_file,
+                slug="slug-2",
+            ),
+            Product(
+                name="Kids doll",
+                thumbnail=uploaded_img_file,
+                slug="slug-3",
+            ),
+        ]
+    )
+    clothes_cat, toys_cat = Category.objects.bulk_create(
+        [
+            Category(name='Clothes'),
+            Category(name='Toys'),
+        ]
+    )
+    for pdt in pdts:
+        cat = toys_cat if 'kid' in pdt.name.lower() else clothes_cat
+        pdt.categories.add(cat)
 
-    orders = Order.objects.bulk_create([
-        Order(
-            qtd=1,
-            status=processing_order_status,
-            user=admin_user,
-            product_variation=pdt_vars[0],
-        ),
-        Order(
-            qtd=1,
-            status=processing_order_status,
-            user=admin_user,
-            product_variation=pdt_vars[1],
-        ),
-    ])
-    Evaluation.objects.bulk_create([
-        Evaluation(
-            evaluation=Evaluation.BAD,
-            order=orders[0],
-        ),
-        Evaluation(
-            evaluation=Evaluation.GOOD,
-            order=orders[1],
-        ),
-    ])
+    pdt_vars = ProductVariation.objects.bulk_create(
+        [
+            ProductVariation(
+                name=f"prod var {idx + 1}",
+                size=faker.random_letter(),
+                color=faker.color(color_format='hex'),
+                price=50 * (idx + 1),
+                product=pdt,
+                slug=f"slug-{idx}",
+            )
+            for idx, pdt in enumerate(pdts)
+        ]
+    )
 
-    store.products.add(*pdt_vars, through_defaults={'qtd': 1})
+    orders = Order.objects.bulk_create(
+        [
+            Order(
+                qtd=1,
+                status=processing_order_status,
+                user=admin_user,
+                product_variation=pdt_var,
+            ) for pdt_var in pdt_vars
+        ]
+    )
+    Evaluation.objects.bulk_create(
+        [
+            Evaluation(
+                evaluation=Evaluation.BAD,
+                order=orders[0],
+            ),
+            Evaluation(
+                evaluation=Evaluation.GOOD,
+                order=orders[1],
+            ),
+            Evaluation(
+                evaluation=Evaluation.GREAT,
+                order=orders[2],
+            ),
+        ]
+    )
+
+    store.products.add(*pdt_vars, through_defaults={"qtd": 1})

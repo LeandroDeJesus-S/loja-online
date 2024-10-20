@@ -43,11 +43,11 @@ def test_product_str_method():
 
 
 @pytest.mark.django_db
-def test_product_slug_create_post_save(memory_upload_img_file):
+def test_product_slug_create_post_save(uploaded_img_file):
     """test if the slug filed is filled after the model to be saved"""
     product = Product(
         name="testing slug",
-        thumbnail=memory_upload_img_file,
+        thumbnail=uploaded_img_file,
         description='lorem ipsum',
     )
     assert not product.slug

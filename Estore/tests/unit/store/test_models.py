@@ -43,7 +43,7 @@ def test_logo_resized_post_save():
 
 
 @pytest.mark.django_db
-def test_store_has_product_variation_str(product_variation, memory_upload_img_file):
+def test_store_has_product_variation_str(product_variation, uploaded_img_file):
     """test the __str__ method from StoreHasProduct model.
 
     Args:
@@ -53,7 +53,7 @@ def test_store_has_product_variation_str(product_variation, memory_upload_img_fi
         name="test",
         slogan="test",
         cnpj="74473068000124",
-        logo=memory_upload_img_file,
+        logo=uploaded_img_file,
     )
     qtd = 1
     store_prod = StoreHasProductVariation(store=store, product=product_variation, qtd=qtd)

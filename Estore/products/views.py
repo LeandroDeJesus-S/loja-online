@@ -2,12 +2,10 @@ from typing import Any
 from django.db.models.query import QuerySet
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 
-from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.views.generic import ListView, DetailView
 
-from .models import Product, ProductVariation
-from mediafiles.models import MediaFile
+from .models import Product
 
 
 class ListProducts(ListView):
@@ -32,7 +30,7 @@ class ListProducts(ListView):
         qs = super().get_queryset()
 
         ordering = self.request.GET.get("ordering", "").strip()
-        if not ordering:
+        if not ordering or ordering not in self.ordering_dict.keys():
             ordering = 'new'
 
         ordering_field = self.ordering_dict[ordering]
@@ -53,7 +51,6 @@ class ListProducts(ListView):
             qs.annotate(rank=SearchRank(sv, q))
             .filter(rank__gte=.05)
             .distinct()
-            
         )
         return qs.order_by(ordering_field)
 

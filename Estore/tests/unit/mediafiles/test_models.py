@@ -6,7 +6,7 @@ from utils.support.messages import MediaFileMessages
 
 
 def test_media_file_str_method_with_sigle_fks(
-        memory_upload_img_file,
+        uploaded_img_file,
         product_variation,
         processing_order_evaluation
     ):
@@ -14,7 +14,7 @@ def test_media_file_str_method_with_sigle_fks(
     when sending just one fk by time.
     """
     mf = MediaFile(
-        file=memory_upload_img_file,
+        file=uploaded_img_file,
         evaluation=processing_order_evaluation,
     )
 
@@ -30,7 +30,7 @@ def test_media_file_str_method_with_sigle_fks(
 
 
 def test_media_file_str_method_with_both_fks(
-    memory_upload_img_file,
+    uploaded_img_file,
     product_variation,
     processing_order_evaluation
 ):
@@ -38,7 +38,7 @@ def test_media_file_str_method_with_both_fks(
     fks are given.
     """
     mf = MediaFile(
-        file=memory_upload_img_file,
+        file=uploaded_img_file,
         evaluation=processing_order_evaluation,
         product_variation=product_variation,
     )
@@ -49,13 +49,13 @@ def test_media_file_str_method_with_both_fks(
 
 
 def test_media_file_chk_mediafile_fks_not_given_together_constraint_fails(
-    memory_upload_img_file,
+    uploaded_img_file,
     product_variation,
     processing_order_evaluation
 ):
     """test the model chk_mediafile_fks_not_given_together constraint fail cases"""
     mf = MediaFile(
-        file=memory_upload_img_file,
+        file=uploaded_img_file,
         evaluation=processing_order_evaluation,
         product_variation=product_variation,
     )
@@ -74,13 +74,13 @@ def test_media_file_chk_mediafile_fks_not_given_together_constraint_fails(
 
 
 def test_media_file_chk_mediafile_fks_not_given_together_constraint_succes(
-    memory_upload_img_file,
+    uploaded_img_file,
     product_variation,
     processing_order_evaluation
 ):
     """test the model chk_mediafile_fks_not_given_together constraint success cases"""
     mf = MediaFile(
-        file=memory_upload_img_file,
+        file=uploaded_img_file,
         evaluation=processing_order_evaluation,
     )
     try:
