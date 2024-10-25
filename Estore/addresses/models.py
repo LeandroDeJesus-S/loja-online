@@ -1,8 +1,8 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
+from django.utils.translation import gettext_lazy as _
 
-from store.models import Store
 from utils.support.messages import AddressMessages
 from utils.support import regex
 
@@ -14,27 +14,32 @@ class Address(models.Model):
 
     Args:
         street (CharField): the street name.
-        state (CharField): the state abbr (e.g: US to united states).
         city (CharField): the city name.
-        postal_code (CharField): the postal code.
+        state (CharField): the state abbr (e.g: US to united states).
         country (CharField): the country abbr (e.g: CA to California)
-        stores (ManyToManyField): the relationship field to the stores.
-        users (ManyToManyField): the relationship field to the users.
+        postal_code (CharField): the postal code.
     """
 
     class Meta:
-        verbose_name = "Endereço"
-        verbose_name_plural = "Endereços"
+        verbose_name = _("Address")
+        verbose_name_plural = _("Addresses")
 
     street = models.CharField(
-        "Rua",
+        _("Street"),
         max_length=100,
         validators=[
             RegexValidator(regex.BASIC_TEXT)
         ],
     )
+    city = models.CharField(
+        _("City"),
+        max_length=45,
+        validators=[
+            RegexValidator(regex.BASIC_TEXT),
+        ],
+    )
     state = models.CharField(
-        "Estado",
+        _("State"),
         max_length=2,
         validators=[
             RegexValidator(
@@ -44,22 +49,8 @@ class Address(models.Model):
         ],
         help_text='Ex.: CA'
     )
-    city = models.CharField(
-        "Cidade",
-        max_length=45,
-        validators=[
-            RegexValidator(regex.BASIC_TEXT),
-        ],
-    )
-    postal_code = models.CharField(
-        "Código postal",
-        max_length=10,
-        validators=[
-            RegexValidator(regex.POSTAL_CODE)
-        ]
-    )
     country = models.CharField(
-        "País",
+        _("Country"),
         max_length=2,
         help_text="Ex.: US",
         validators=[
@@ -69,66 +60,64 @@ class Address(models.Model):
             ),
         ],
     )
-    stores = models.ManyToManyField(Store, through="HasAddress")
-    users = models.ManyToManyField(User, through="HasAddress")
+    postal_code = models.CharField(
+        _("Postal code"),
+        max_length=10,
+        validators=[
+            RegexValidator(regex.POSTAL_CODE)
+        ]
+    )
 
     def __str__(self) -> str:
         """return the address like 'street, city - state / country | postal code'"""
         return f"{self.street}, {self.city} - {self.state} / {self.country} | {self.postal_code}"
 
 
-class HasAddress(models.Model):
-    """the tertiary entity of the relationship between address and store and user
+class UserAddress(models.Model):
+    """the intermediary entity of the relationship between address and
+    user and user that contains the complement fields.
+
     Args:
-        number (CharField): the number of the code.
-        complement (CharField): extra information of the address.
-        user (ForeignKey): the relationship column that references user.
-        store (ForeignKey): the relationship column that references the store.
-        address (ForeignKey): the relationship column that references the address table.
+        number (CharField): user's address number.
+        complement (CharField): user's address complement.
+        user (ForeignKey): the user owner of the address.
+        address (ForeignKey): the address model reference.
     """
 
     class Meta:
-        verbose_name = "Endereço atribuído"
-        verbose_name_plural = "Endereços atribuídos"
-        constraints = [
-            models.CheckConstraint(
-                condition=models.Q(user__isnull=True, store__isnull=False) | # type: ignore
-                      models.Q(user__isnull=False, store__isnull=True) |
-                      models.Q(user__isnull=False, store__isnull=False),
-                name='chk_has_address_fks_not_given_together'
-            )
-        ]
+        verbose_name = _("User's address")
+        verbose_name_plural = _("User's addresses")
 
     number = models.CharField(
-        "Número",
+        _("Number"),
         max_length=10,
         validators=[
             RegexValidator(r'^[A-Za-z0-9]+$'),
         ],
     )
     complement = models.CharField(
-        "Complemento",
+        _("Complement"),
         max_length=100,
         blank=True,
         validators=[
             RegexValidator(regex.BASIC_TEXT),
         ],
     )
-    user = models.ForeignKey(
+    user = models.OneToOneField(
         User,
         on_delete=models.DO_NOTHING,
-        null=True,
-    )
-    store = models.ForeignKey(
-        Store,
-        on_delete=models.DO_NOTHING,
-        null=True,
+        verbose_name=_("User"),
+        related_name='user_address',
+        related_query_name='user_address',
     )
     address = models.ForeignKey(
         Address,
         on_delete=models.DO_NOTHING,
+        verbose_name=_("Address"),
+        related_name='address_user_addresses',
+        related_query_name='address_user_address',
     )
 
     def __str__(self) -> str:
-        """returns the number + the address representation"""
-        return f"{self.number}, {self.address}"
+        """returns the comma separated number and the complement """
+        return f"{self.number}, {self.complement}"

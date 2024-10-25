@@ -1,107 +1,118 @@
-from decimal import Decimal
-
 from django.contrib.auth import get_user_model
-from django.core.validators import RegexValidator, MinValueValidator
+from django.core.validators import MinValueValidator
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 from products.models import ProductVariation
 from utils.support.messages import OrderMessages
 
 User = get_user_model()
 
 
-class OrderStatus(models.Model):
-    """the model to stores order status
-    Args:
-        name (CharField): the order status name.
-    """
-
-    class Meta:
-        verbose_name = "Status de pedido"
-        verbose_name_plural = "Status de pedidos"
-
-    name = models.CharField(
-        "Nome",
-        unique=True,
-        max_length=45,
-        validators=[
-            RegexValidator(
-                r"^[\w ]+$",
-                OrderMessages.INVALID_ORDER_STATUS_NAME,
-            )
-        ],
-        error_messages={
-            "invalid": OrderMessages.INVALID_ORDER_STATUS_NAME,
-        },
-    )
-
-    def __str__(self) -> str:
-        """returns the order status name"""
-        return self.name
-
-
 class Order(models.Model):
-    """the model that stores the orders of the users
+    """The model that stores the orders of the users
+
     Args:
-        qtd (PositiveIntegerField): the quantity of items purchased.
+        total_items (PositiveIntegerField): the quantity of items purchased.
+        total_amount (DecimalField): the total sum of the items.
+        status (CharField): choices field with the order status.
         created_at (DateTimeField, AutoNow): the time when the order was created. Read only.
-        status (ForeignKey): the relationship field to the status model.
         user (ForeignKey): the user relationship field.
-        product_variation (ForeignKey): the product variation relationship field.
+
+        PENDING (str): status choice that represents a pending order.
+        EXPIRED (str): status choice that represents an expired order.'
+        CANCELED (str): status choice that represents a canceled order.
+        PAID (str): status choice that represents a paid order.
     """
 
     class Meta:
-        verbose_name = "Pedido"
-        verbose_name_plural = "Pedidos"
-    
-    _MIN_QTD = 1
+        verbose_name = _("Order")
+        verbose_name_plural = _("Orders")
 
-    qtd = models.PositiveIntegerField(
-        "Qtd.",
+    _MIN_ITEMS = 1
+    _MIN_AMOUNT = 0
+
+    PENDING = "PE"
+    EXPIRED = "EX"
+    CANCELED = "CA"
+    PAID = "PA"
+
+    STATUS_CHOICES = (
+        (PENDING, _("Order pending")),
+        (EXPIRED, _("Order expired")),
+        (CANCELED, _("Order canceled")),
+        (PAID, _("Order paid")),
+    )
+
+    total_items = models.PositiveIntegerField(
+        _("Total items"),
         null=False,
-        default=_MIN_QTD,
+        default=_MIN_ITEMS,
         validators=[
-            MinValueValidator(_MIN_QTD),
+            MinValueValidator(
+                _MIN_ITEMS,
+                OrderMessages.ITEMS_INSUFFICIENT,
+            ),
         ],
     )
-    created_at = models.DateTimeField(
-        "Criada em",
-        auto_now_add=True,
+    total_amount = models.DecimalField(
+        _("Total amount"),
+        max_digits=10,
+        decimal_places=2,
+        validators=[
+            MinValueValidator(_MIN_AMOUNT),
+        ],
         editable=False,
     )
-    status = models.ForeignKey(
-        OrderStatus,
-        on_delete=models.DO_NOTHING,
+    status = models.CharField(max_length=2, choices=STATUS_CHOICES, blank=False)
+    created_at = models.DateTimeField(
+        _("Created at"),
+        auto_now_add=True,
+        editable=False,
     )
     user = models.ForeignKey(
         User,
         on_delete=models.DO_NOTHING,
-        verbose_name="Usuário",
+        verbose_name=_("User"),
+    )
+
+    def __str__(self) -> str:
+        """returns the order representation like
+        'total items, total amount | status'
+        """
+        return f"{self.total_items}, {self.total_amount} | {self.status}"
+
+
+class OrderProductVariation(models.Model):
+    """The tertiary table to the products variation included to the
+    user's order.
+
+    Args:
+        order (ForeignKey): the referenced order from the Order model.
+        product_variation (ForeignKey): the reference to the product variation.
+        qtd (PositiveIntegerField): the quantity of a single variation.
+    """
+
+    class Meta:
+        verbose_name = _("Order product variation")
+        verbose_name_plural = _("Order product variations")
+
+    _MIN_QTD = 1
+
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.DO_NOTHING,
+        verbose_name=_("Order"),
     )
     product_variation = models.ForeignKey(
         ProductVariation,
         on_delete=models.DO_NOTHING,
-        verbose_name="Variação",
-        related_query_name='product_variation_order'
+        verbose_name=_("Product variation"),
+    )
+    qtd = models.PositiveIntegerField(
+        _("Quantity"), validators=[MinValueValidator(_MIN_QTD)]
     )
 
     def __str__(self) -> str:
-        """returns the order representation like 'username | product, qtd - status'
+        """returns the representation like 'order, product variation | qtd'
         """
-        usr = self.user.username
-        prod = self.product_variation
-        status = self.status.name
-        return f"{usr} | {prod}, {self.qtd} - {status}"
-
-    def order_value(self, as_int: bool = False) -> int | Decimal:
-        """returns the total value of the order.
-
-        Args:
-            as_int (bool, optional): if is True return the value in integer. Defaults to False.
-
-        Returns:
-            int | Decimal: the value as int or Decimal.
-        """
-        value = self.qtd * self.product_variation.price
-        if as_int:
-            return int(value * 100)
-        return value
+        return f'{self.order}, {self.product_variation} | {self.qtd}'

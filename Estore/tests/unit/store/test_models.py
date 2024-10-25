@@ -2,7 +2,7 @@ from io import BytesIO
 from django.core.files.uploadedfile import InMemoryUploadedFile
 import pytest
 from PIL import Image
-from store.models import Store, StoreHasProductVariation
+from store.models import Store
 
 
 def test_store_str():
@@ -40,21 +40,3 @@ def test_logo_resized_post_save():
 
     new_size = store.logo.width, store.logo.height
     assert new_size == store._LOGO_MAX_DIM
-
-
-@pytest.mark.django_db
-def test_store_has_product_variation_str(product_variation, uploaded_img_file):
-    """test the __str__ method from StoreHasProduct model.
-
-    Args:
-        dumb_product_variation (ProductVariation): instance of the model ProductVariation.
-    """
-    store = Store.objects.create(
-        name="test",
-        slogan="test",
-        cnpj="74473068000124",
-        logo=uploaded_img_file,
-    )
-    qtd = 1
-    store_prod = StoreHasProductVariation(store=store, product=product_variation, qtd=qtd)
-    assert str(store_prod) == f"{str(store)}, {str(product_variation)} | {qtd}"

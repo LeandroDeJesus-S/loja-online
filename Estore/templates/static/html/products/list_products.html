@@ -24,12 +24,12 @@
         {% for product in products %}
             <div class="col">
                 <div class="card product-card h-100 p-1 bg-secondary">
-                    <a href="{% url 'products:product_detail' product.slug %}" class="text-decoration-none">
-                        <img class="card-img-top img-fluid object-fit-contain" src="{{product.thumbnail.url}}" alt="filtro">                
+                    <a href="" class="text-decoration-none">
+                        <img class="card-img-top img-fluid object-fit-contain" src="{{product.image.url}}" alt="filtro">                
                         <div class="card-body p-1 pt-2">
                             <h6 class="card-title text-primary-emphasis">{{product.name}}</h6>
                             <p class="card-text text-dark-emphasis"><span class="tex-success">&starf;&starf;&starf;&starf;&starf;</span></p>
-                            <p class="card-text">R$ {{product.mean_price}}</p>
+                            <p class="card-text">R$ {{product.base_price}}</p>
                         </div>
                     </a>
                 </div>

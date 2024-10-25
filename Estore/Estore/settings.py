@@ -32,7 +32,7 @@ DEBUG = bool(int(os.getenv('DEBUG', 0)))
 ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', '').split(',') if h.strip()]
 
 
-# Application definition
+ENVIRON = os.getenv('ENVIRONMENT')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -49,13 +49,11 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
-
+    
     'store',
     'products',
     'addresses',
     'orders',
-    'evaluations',
-    'mediafiles',
 ]
 
 AUTHENTICATION_BACKENDS = [
@@ -201,3 +199,14 @@ BOOTSTRAP5 = {
         "crossorigin": "anonymous",
     },
 }
+
+# debug toolbar
+if ENVIRON == 'development':
+    INTERNAL_IPS = [
+        "127.0.0.1", "localhost", "172.17.0.1"
+    ]
+    DEBUG_TOOLBAR_CONFIG = {
+        'SHOW_TOOLBAR_CALLBACK': lambda request: True,  # Mostra a toolbar sempre
+    }
+    INSTALLED_APPS += ["debug_toolbar"]
+    MIDDLEWARE += ["debug_toolbar.middleware.DebugToolbarMiddleware"]

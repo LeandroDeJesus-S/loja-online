@@ -7,6 +7,7 @@ class GenericMessages:
     INVALID_MIN_LENGTH = '`{field}` must have at least `{size}` characters.'
     INVALID_MAX_LENGTH = '`{field}` must have at most `{size}` characters.'
     FILE_SIZE_EXCEEDED = _('the file size is too big.')
+    INVALID_NAME = _('The name is invalid.')
 
 
 class AddressMessages:
@@ -37,7 +38,7 @@ class OrderMessages:
     INVALID_ORDER_STATUS_NAME = _('invalid status.')
     INVALID_STRIPE_PAYMENT_ID = _('Invalid stripe payment id.')
     INVALID_STRIPE_PAYMENT_METHOD_ID = _('The stripe payment method id is invalid.')
-
+    ITEMS_INSUFFICIENT = _("The number of items is insufficient to create an order.")
 
 class MediaFileMessages:
     """messages to media files domain"""
