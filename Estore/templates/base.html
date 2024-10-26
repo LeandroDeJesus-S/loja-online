@@ -22,7 +22,7 @@
 
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
 
-    <title>Loja online</title>
+    <title>{{store.name}}</title>
 </head>
 
 <body class="mw-100">
@@ -34,7 +34,7 @@
                 <div class="row row-cols-3 vw-100 justify-content-center align-items-center">
                     <div class="col-4 col-md-2 ps-2">
                         <a class="navbar-brand" href="/">
-                            VEST.ly
+                            {{store.name}}
                         </a>
                     </div>
                     <div class="col-5 col-md-5 d-flex justify-content-center px-0">
@@ -118,7 +118,7 @@
 
     <footer>
         {% block footer %}
-        <p class="text-center">&copy; Loja online 2024. Todos os direitos reservados.</p>
+            <p class="text-center">&copy; {{store.name}} {% now "Y" %}. {% translate "All rights reserved" %}.</p>
         {% endblock footer %}
     </footer>
 
