@@ -7,7 +7,7 @@ from debug_toolbar.toolbar import debug_toolbar_urls
 from products.views import ListProducts
 
 urlpatterns = [
-    path("", ListProducts.as_view()),
+    path("", ListProducts.as_view(), name='home'),
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
     path('products/', include('products.urls')),

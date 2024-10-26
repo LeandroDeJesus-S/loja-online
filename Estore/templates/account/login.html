@@ -26,9 +26,7 @@
                 {% if SOCIALACCOUNT_ENABLED %}
                     {% include "socialaccount/snippets/login.html" with page_layout="entrance" %}
                 {% endif %}
-                <div class="d-flex justify-content-center pt-2">
-                    <button class="btn btn-sm btn-primary" type="submit" tags="prominent,login">{% trans "Sign In" %}</button>
-                </div>
+                <button class="btn w-100 mt-2 d-block btn-primary" type="submit" tags="prominent,login">{% trans "Sign In" %}</button>
             </form>
         </div>
         

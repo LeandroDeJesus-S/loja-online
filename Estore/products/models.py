@@ -19,7 +19,7 @@ from utils.support.func import resize_image
 from utils.support.validators import FileSizeValidator
 from utils.support import regex
 
-from .managers import ProductManager
+from .managers import ProductManager, ProductQuerySet
 
 
 class Product(models.Model):
@@ -31,6 +31,9 @@ class Product(models.Model):
         slug (SlugField): the product slug. Auto created using the product name before to save.
         image (ImageField): the product image to display on list products.
         description (TextField): a description about the product.
+
+        categories (ManyToManyField): m2m field to the product categories model.
+        variations (ManyToManyField): m2m field to the product variations model.
     """
 
     class Meta:
@@ -106,9 +109,10 @@ class Product(models.Model):
     )
     variations = models.ManyToManyField(
         "ProductVariation",
-        verbose_name=_("Product variation"),
+        verbose_name=_("Product variations"),
         related_name='products',
         related_query_name='product',
+        blank=True
     )
 
     def __str__(self) -> str:
@@ -130,7 +134,6 @@ class ProductCategory(models.Model):
 
     Args:
         name (CharField): the name of the category. Letters, digits and spaces or "_".
-        product (ForeignKey): related field to the Product model
     """
 
     class Meta:
@@ -208,7 +211,8 @@ class ProductEvaluation(models.Model):
         Product,
         on_delete=models.DO_NOTHING,
         verbose_name=_("Product"),
-        related_query_name="order_evaluation",
+        related_name='evaluations',
+        related_query_name="evaluation",
     )
 
     def __str__(self) -> str:
@@ -246,12 +250,6 @@ class ProductEvaluationFile(models.Model):
     def __str__(self) -> str:
         """returns the file name or '-' if no file"""
         return self.file.name if self.file else "-"
-
-    def save(self, *args, **kwargs) -> None:
-        """resizes the file after to save"""
-        super().save(*args, **kwargs)
-        if self.file:
-            resize_image(self.file.path, *self._FILE_MAX_DIM)
 
 
 class ProductVariation(models.Model):
@@ -292,6 +290,10 @@ class ProductVariationOption(models.Model):
         option_value (CharField): the value to a variation (ex.: blue, XL).
         variation (ForeignKey): the reference to the variation.
     """
+
+    class Meta:
+        verbose_name = _("Product variation option")
+        verbose_name_plural = _("Product variation options")
 
     option_value = models.CharField(
         _("Option value"),
@@ -387,16 +389,10 @@ class ProductVariationFile(models.Model):
         ProductVariationOptionData,
         on_delete=models.DO_NOTHING,
         verbose_name=_("Product variation data"),
-        related_name="options_data",
-        related_query_name="option_data",
+        related_name="data_files",
+        related_query_name="data_file",
     )
 
     def __str__(self) -> str:
         """returns the file name or '-' if no file"""
         return self.file.name if self.file else "-"
-
-    def save(self, *args, **kwargs) -> None:
-        """resizes the file after to save"""
-        super().save(*args, **kwargs)
-        if self.file:
-            resize_image(self.file.path, *self._FILE_MAX_DIM)

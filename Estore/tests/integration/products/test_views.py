@@ -6,7 +6,13 @@ from django.test.client import Client
 from django.urls import reverse
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 
-from products.models import Product
+from products.models import (
+    Product,
+    ProductCategory,
+    ProductVariationOptionData,
+    ProductVariationOption,
+    ProductVariation,
+)
 from pytest_django.asserts import assertTemplateUsed, assertQuerySetEqual
 
 
@@ -25,7 +31,7 @@ def test_list_products_context(client: Client, two_products_one_available):
     context = response.context
 
     context_products = context["products"]
-    expected_products = Product.listing.all()
+    expected_products = Product.objects.available()
     assertQuerySetEqual(context_products, expected_products)
 
 
@@ -41,44 +47,55 @@ def test_list_products_context(client: Client, two_products_one_available):
 )
 def test_list_products_ordering(client: Client, product_samples, ordering):
     """test if the sorting of the products by user form is working as expected."""
-    ordering_dict = {
-        "new": "-id",
-        "less_price": "product_variation__price",
-        "greatest_price": "-product_variation__price",
-        "less_eval": "product_variation__product_variation_order__order_evaluation",
-        "greatest_eval": "-product_variation__product_variation_order__order_evaluation",
-    }
-
-    response = client.get(reverse("home") + f'?ordering={ordering}')
+    response = client.get(reverse("home") + f"?ordering={ordering}")
 
     response_products = response.context["products"]
-    expected_products = Product.objects.order_by(ordering_dict[ordering])
+    expected_products = Product.objects.sort(ordering)
 
     assertQuerySetEqual(response_products, expected_products)
 
 
 @pytest.mark.parametrize(
-    'search',
-    ['t-shirt', 'female', 'male', 'kids', 'var 1'],
+    "search",
+    ["t-shirt", "female", "male", "kids", "var 1"],
 )
 def test_list_products_search(client: Client, product_samples, search: str, settings):
-    response = client.get(reverse('home') + f'?search={search}')
-    response_products = response.context['products']
+    response = client.get(reverse("home") + f"?search={search}")
+    response_products = response.context["products"]
 
     sv = SearchVector(
         "name",
         "description",
-        "product_variation__name",
-        "product_variation__size",
+        "variations__option__option_value",
         "categories__name",
     )
     q = SearchQuery(search)
 
     expected_products = (
-        Product.listing
-        .annotate(rank=SearchRank(sv, q))
-        .filter(rank__gte=.05)
+        Product.objects.annotate(rank=SearchRank(sv, q))
+        .filter(rank__gte=0.05)
         .distinct()
     )
     assert response.status_code == HTTPStatus.OK
-    assertQuerySetEqual(response_products, expected_products.order_by('-id'))
+    assertQuerySetEqual(response_products, expected_products.order_by("-pk"))
+
+
+@pytest.mark.django_db
+def test_product_detail_context(client: Client, product_samples):
+    """test if the context data is correctly"""
+    product = Product.objects.get(name='Female T-Shirt')
+    
+    response = client.get(reverse("products:product_detail", args=(product.slug,)))
+    context = response.context
+
+    variations = context["variations"]
+    variations_data = context["variation_data"]
+    categories = context["categories"]
+
+    expected_variations = [[('color', 'red'), ('size', 'XL')]]
+    expected_variations_data = product.variation_options_data.all()
+    expected_categories = product.categories.all()
+
+    assert variations == expected_variations
+    assertQuerySetEqual(variations_data, expected_variations_data)
+    assertQuerySetEqual(categories, expected_categories)

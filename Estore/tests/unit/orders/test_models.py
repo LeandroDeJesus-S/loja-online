@@ -15,11 +15,11 @@ def test_order_str_method(admin_user):
     assert str(order) == f'{tot_items}, {amount} | {status}'
 
 
-def test_order_product_variation_str_method(pending_order, product_variation):
+def test_order_product_variation_str_method(pending_order, product_variation_option_data):
     """test the return of the __str__ method"""
     opv = OrderProductVariation(
         order=pending_order,
-        product_variation=product_variation,
+        product_variation_option_data=product_variation_option_data,
         qtd=1
     )
-    assert str(opv) == f'{opv.order}, {opv.product_variation} | {opv.qtd}'
+    assert str(opv) == f'{opv.order}, {opv.product_variation_option_data} | {opv.qtd}'

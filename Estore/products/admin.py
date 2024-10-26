@@ -14,7 +14,8 @@ from .admin_inlines import VariationFileInline, VariationOptionInline
 
 
 @admin.register(Product)
-class ProductAdmin(admin.ModelAdmin): ...
+class ProductAdmin(admin.ModelAdmin):
+    readonly_fields = ['slug']
 
 
 @admin.register(ProductVariation)

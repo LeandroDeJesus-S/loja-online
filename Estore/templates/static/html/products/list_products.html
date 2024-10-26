@@ -24,7 +24,7 @@
         {% for product in products %}
             <div class="col">
                 <div class="card product-card h-100 p-1 bg-secondary">
-                    <a href="" class="text-decoration-none">
+                    <a href="{% url "products:product_detail" product.slug %}" class="text-decoration-none">
                         <img class="card-img-top img-fluid object-fit-contain" src="{{product.image.url}}" alt="filtro">                
                         <div class="card-body p-1 pt-2">
                             <h6 class="card-title text-primary-emphasis">{{product.name}}</h6>

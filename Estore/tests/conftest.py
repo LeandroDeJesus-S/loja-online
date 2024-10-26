@@ -1,4 +1,3 @@
-from decimal import Decimal
 from io import BytesIO
 
 import pytest
@@ -13,6 +12,7 @@ from products.models import (
     ProductCategory,
     ProductVariationOption,
     ProductVariationOptionData,
+    ProductEvaluation,
 )
 from store.models import Store
 
@@ -55,8 +55,8 @@ def product(db, uploaded_img_file: SimpleUploadedFile) -> Product:
         Product: instance of a product
     """
     pdt = Product(
-        name="short", 
-        description="short test", 
+        name="short",
+        description="short test",
         image=uploaded_img_file,
         base_price=100,
     )
@@ -85,10 +85,9 @@ def product_variation(db, product: Product) -> ProductVariation:
 
 @pytest.fixture
 def product_variation_option(db, product_variation: ProductVariation):
-    """returns an variation option instance.
-    """
+    """returns an variation option instance."""
     pvo = ProductVariationOption(
-        option_value='blue',
+        option_value="blue",
         variation=product_variation,
     )
     pvo.save()
@@ -97,15 +96,14 @@ def product_variation_option(db, product_variation: ProductVariation):
 
 
 @pytest.fixture
-def product_variation_option_data(db, product: Product) -> ProductVariationOptionData:
+def product_variation_option_data(
+    db, product: Product, product_variation_option: ProductVariationOption
+) -> ProductVariationOptionData:
     """returns an instance of a variation option data for `product`fixture
     instance."""
-    pvod = ProductVariationOptionData(
-        price=100,
-        stock=1,
-        product=product
-    )
+    pvod = ProductVariationOptionData(price=100, stock=1, product=product)
     pvod.save()
+    pvod.options.add(product_variation_option)
     return pvod
 
 
@@ -142,129 +140,158 @@ def address(db):
 
 @pytest.fixture
 def two_products_one_available(
-    db, 
-    product: Product, 
-    product_variation: ProductVariation, 
+    db,
+    product: Product,
+    product_variation: ProductVariation,
     product_variation_option: ProductVariationOption,
     product_variation_option_data: ProductVariationOptionData,
     uploaded_img_file,
 ):
     """creates two products which just one has available stock"""
     product_variation_option_data.options.add(product_variation_option)
-    
 
     pdt = Product(
-        name="short2", 
-        description="short test2", 
+        name="short2",
+        description="short test2",
         image=uploaded_img_file,
         base_price=100,
     )
     pdt.save()
-    
+
     var = ProductVariation.objects.get_or_create(
         name="color",
     )
 
     var_opt = ProductVariationOption.objects.create(
-        option_value='blue',
+        option_value="blue",
         variation=var[0],
     )
 
-    var_value = ProductVariationOptionData(
-        price=100,
-        stock=0,
-        product=pdt
-    )
+    var_value = ProductVariationOptionData(price=100, stock=0, product=pdt)
     var_value.save()
     var_value.options.add(var_opt)
 
 
-# @pytest.fixture
-# def product_samples(
-#     db,
-#     faker: Faker,
-#     uploaded_img_file: SimpleUploadedFile,
-#     processing_order_status: OrderStatus,
-#     admin_user,
-#     store: Store,
-#     settings,
-# ):
-#     """populates the database with 3 product samples
-#     named 'Female T-Shirt', 'Male T-Shirt' and 'Kids doll'.
-#     3 product variations (one for each product) named 'prod var 1/2/3'
-#     and prices 50, 100 and 150.
+@pytest.fixture
+def product_samples(
+    db,
+    faker: Faker,
+    uploaded_img_file: SimpleUploadedFile,
+    admin_user,
+    store: Store,
+    settings,
+):
+    """populates the database with 3 product samples
+    named 'Female T-Shirt', 'Male T-Shirt' and 'Kids doll'.
+    2 categories named 'clothes' and 'toys'.
+    2 variations named 'color' and 'size'.
+    2 variation options to color (red, green) and 1 to size (XL).
+    1 variation option data to each product (XL, red to female, XL and green to male and XL to kids).
+    1 order to each product by the `admin_user` fixture with total_items eq 1 and status PAID.
+    1 evaluation to each product (BAD, GOOD and GREAT respectively).
+    """
+    pdt_female, pdt_male, pdt_kids = Product.objects.bulk_create(
+        [
+            Product(
+                name="Female T-Shirt",
+                image=uploaded_img_file,
+                base_price=50,
+                slug="slug-1",
+                description="t-shirt for girls",
+            ),
+            Product(
+                name="Male T-Shirt",
+                image=uploaded_img_file,
+                base_price=100,
+                slug="slug-2",
+                description="clothes for men",
+            ),
+            Product(
+                name="Kids doll",
+                image=uploaded_img_file,
+                base_price=150,
+                slug="slug-3",
+                description="toys for kids",
+            ),
+        ]
+    )
+    clothes_cat, toys_cat = ProductCategory.objects.bulk_create(
+        [
+            ProductCategory(name="Clothes"),
+            ProductCategory(name="Toys"),
+        ]
+    )
 
-#     each one have an order and an evaluation (BAD, GOOD and GREAT respectively).
-#     """
-#     pdts = Product.objects.bulk_create(
-#         [
-#             Product(
-#                 name="Female T-Shirt",
-#                 thumbnail=uploaded_img_file,
-#                 slug="slug-1",
-#             ),
-#             Product(
-#                 name="Male T-Shirt",
-#                 thumbnail=uploaded_img_file,
-#                 slug="slug-2",
-#             ),
-#             Product(
-#                 name="Kids doll",
-#                 thumbnail=uploaded_img_file,
-#                 slug="slug-3",
-#             ),
-#         ]
-#     )
-#     clothes_cat, toys_cat = Category.objects.bulk_create(
-#         [
-#             Category(name="Clothes"),
-#             Category(name="Toys"),
-#         ]
-#     )
-#     for pdt in pdts:
-#         cat = toys_cat if "kid" in pdt.name.lower() else clothes_cat
-#         pdt.categories.add(cat)
+    pdt_female.categories.add(clothes_cat)
+    pdt_male.categories.add(clothes_cat)
+    pdt_kids.categories.add(toys_cat)
 
-#     pdt_vars = ProductVariation.objects.bulk_create(
-#         [
-#             ProductVariation(
-#                 name=f"prod var {idx + 1}",
-#                 size=faker.random_letter(),
-#                 color=faker.color(color_format="hex"),
-#                 price=50 * (idx + 1),
-#                 product=pdt,
-#                 slug=f"slug-{idx}",
-#             )
-#             for idx, pdt in enumerate(pdts)
-#         ]
-#     )
+    color_var, size_var = ProductVariation.objects.bulk_create(
+        [
+            ProductVariation(name="color"),
+            ProductVariation(name="size"),
+        ]
+    )
 
-#     orders = Order.objects.bulk_create(
-#         [
-#             Order(
-#                 qtd=1,
-#                 status=processing_order_status,
-#                 user=admin_user,
-#                 product_variation=pdt_var,
-#             )
-#             for pdt_var in pdt_vars
-#         ]
-#     )
-#     Evaluation.objects.bulk_create(
-#         [
-#             Evaluation(
-#                 evaluation=Evaluation.BAD,
-#                 order=orders[0],
-#             ),
-#             Evaluation(
-#                 evaluation=Evaluation.GOOD,
-#                 order=orders[1],
-#             ),
-#             Evaluation(
-#                 evaluation=Evaluation.GREAT,
-#                 order=orders[2],
-#             ),
-#         ]
-#     )
+    r, g, XL = ProductVariationOption.objects.bulk_create(
+        [
+            ProductVariationOption(option_value="red", variation=color_var),
+            ProductVariationOption(option_value="green", variation=color_var),
+            ProductVariationOption(option_value="XL", variation=size_var),
+        ]
+    )
 
-#     store.products.add(*pdt_vars, through_defaults={"qtd": 1})
+    pdt_data = ProductVariationOptionData.objects.bulk_create(
+        [
+            ProductVariationOptionData(
+                price=pdt_female.base_price, stock=1, product=pdt_female
+            ),
+            ProductVariationOptionData(
+                price=pdt_male.base_price, stock=2, product=pdt_male
+            ),
+            ProductVariationOptionData(
+                price=pdt_kids.base_price, stock=2, product=pdt_kids
+            ),
+        ]
+    )
+    pdt_fem_data, pdt_male_data, pdt_kids_data = pdt_data
+
+    pdt_fem_data.options.add(XL, r)
+    pdt_male_data.options.add(g, XL)
+    pdt_kids_data.options.add(XL)
+
+    orders = Order.objects.bulk_create(
+        [
+            Order(
+                total_items=1,
+                total_amount=pdt_fem_data.price,
+                status=Order.PAID,
+                user=admin_user,
+            ),
+            Order(
+                total_items=1,
+                total_amount=pdt_male_data.price,
+                status=Order.PAID,
+                user=admin_user,
+            ),
+            Order(
+                total_items=1,
+                total_amount=pdt_kids_data.price,
+                status=Order.PAID,
+                user=admin_user,
+            ),
+        ]
+    )
+    fem_order, male_order, kids_order = orders
+
+    fem_order.variations.add(pdt_fem_data, through_defaults={"qtd": 1})
+    male_order.variations.add(pdt_male_data, through_defaults={"qtd": 1})
+    kids_order.variations.add(pdt_kids_data, through_defaults={"qtd": 1})
+
+    ProductEvaluation.objects.bulk_create(
+        [
+            ProductEvaluation(evaluation=ProductEvaluation.BAD, product=pdt_female),
+            ProductEvaluation(evaluation=ProductEvaluation.GOOD, product=pdt_male),
+            ProductEvaluation(evaluation=ProductEvaluation.GREAT, product=pdt_kids),
+        ]
+    )

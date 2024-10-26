@@ -1,11 +1,9 @@
 from typing import Any
-from django.db.models.query import QuerySet
-from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
-from django.db.models import Avg
-from django.shortcuts import render
-from django.views.generic import ListView, DetailView
 
-from .models import Product
+from django.views.generic import ListView, DetailView, View
+
+from .models import Product, ProductCategory
+from .managers import ProductQuerySet
 
 
 class ListProducts(ListView):
@@ -16,73 +14,45 @@ class ListProducts(ListView):
     paginate_by = 5
     ordering = '-pk'
 
-    ordering_dict = {
-        "new": "-pk",
-        "less_price": "avg",
-        "greatest_price": "-avg",
-        "less_eval": "product_variation__product_variation_order__order_evaluation",
-        "greatest_eval": "-product_variation__product_variation_order__order_evaluation",
-    }
+    def get_queryset(self) -> ProductQuerySet:
+        """returns the queryset ordered or filtered
+        by the user search
+        """
+        qs: ProductQuerySet = super().get_queryset()  # type: ignore
 
-    # def get_queryset(self) -> QuerySet[Any]:
-    #     """returns the queryset ordered or filtered
-    #     by the user search
-    #     """
-    #     qs = super().get_queryset()
+        ordering = self.request.GET.get("ordering", "new").strip()
+        search = self.request.GET.get("search", "")
+        if not search:
+            return qs.sort(ordering)
 
-    #     ordering = self.request.GET.get("ordering", "").strip()
-        
-    #     if not ordering or ordering not in self.ordering_dict.keys():
-    #         ordering = "new"
-
-    #     # if ordering in ['greatest_price', 'less_price']:
-    #     #     return qs.order_by_mean_price(ordering_field)
-    #     # return qs.all()
-
-    #     search = self.request.GET.get("search", "")
-    #     if not search:
-    #         return self.sort_products(qs, ordering)
-
-    #     sv = SearchVector(
-    #         "name",
-    #         "description",
-    #         "product_variation__name",
-    #         "product_variation__size",
-    #         "categories__name",
-    #     )
-    #     q = SearchQuery(search)
-    #     qs = qs.annotate(rank=SearchRank(sv, q)).filter(rank__gte=0.05)
-    #     qs = self.sort_products(qs, ordering)
-    #     return qs.prefetch_related(
-    #         "product_variations__product_stores__store", 'product_variations'
-    #     )
-
-#     def sort_products(self, qs: QuerySet, ordering: str) -> QuerySet[Any]:
-#         """manage the sorting of the products
-        
-#         Args:
-#             qs (QuerySet): the products queryset.
-#             ordering (str): the sorting method retrieved from request.
-        
-#         Returns:
-#             QuerySet:
-#         """
-#         ordering_field = self.ordering_dict[ordering]
-#         by_price = ordering in ['greatest_price', 'less_price']
-#         if by_price:
-#             return qs.order_by_mean_price(ordering_field)  # type: ignore
-#         return qs.order_by(ordering_field)
+        return qs.search(search).sort(ordering)
 
 
-# class ProductDetail(DetailView):
-#     model = Product
-#     context_object_name = "product"
-#     template_name = "static/html/products/product_detail.html"
+class ProductDetail(DetailView):
+    model = Product
+    context_object_name = "product"
+    template_name = "static/html/products/product_detail.html"
 
-#     def get_queryset(self) -> QuerySet[Any]:
-#         qs = super().get_queryset()
-#         return qs.prefetch_related(
-#             "product_variations__files",
-#             "product_variations__product_stores__store",
-#             "categories",
-#         )
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        """add the variations, variations data and categories to the
+        context.
+        """
+        context = super().get_context_data(**kwargs)
+        product = context['product']
+
+        variations = []
+                
+        data = product.variation_options_data.prefetch_related('options', 'options__variation', 'data_files')
+        for d in data:
+            variation_options = [
+                (option.variation.name, option.option_value) 
+                for option in d.options.all()
+            ]
+
+            variations.append(variation_options)
+
+        print(variations)
+        context['variations'] = variations
+        context['variation_data'] = data
+        context['categories'] = ProductCategory.objects.filter(product=product)
+        return context
