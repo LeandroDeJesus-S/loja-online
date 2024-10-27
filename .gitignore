@@ -4,6 +4,5 @@ data/
 venv
 *.mwb*
 *.coverage*
-*.ini
 *.pytest_cache
 *htmlcov
