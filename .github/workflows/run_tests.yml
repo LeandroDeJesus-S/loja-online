@@ -17,6 +17,12 @@ jobs:
 
       - name: up containers
         run: docker compose up -d --build
+      
+      - name: install dev dependencies
+        run: docker compose exec djangoapp install_dev_dependencies.sh
     
       - name: run tests
-        run: docker compose exec --env ENVIRONMENT=testing djangoapp pytest ./tests/
+        run: docker compose exec djangoapp run_tests.sh
+
+      - name: down containers
+        run: docker compose down
