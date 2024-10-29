@@ -1,5 +1,5 @@
 #!/bin/sh
 
 if [ ${ENVIRONMENT} = "development" ]; then
-    pip install -r requirements-dev.txt;
+    pip install -r requirements-dev.txt --root-user-action;
 fi
