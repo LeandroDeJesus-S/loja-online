@@ -11,7 +11,7 @@ WORKDIR /app
 EXPOSE 8000
 
 RUN pip install --upgrade pip && \
-    pip install -r requirements.txt && \
+    pip install -r requirements.txt --root-user-action && \
     chmod -R +x /scripts
 
 ENV PATH="/scripts:$PATH"
