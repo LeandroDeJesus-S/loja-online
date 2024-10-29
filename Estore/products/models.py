@@ -19,7 +19,7 @@ from utils.support.func import resize_image
 from utils.support.validators import FileSizeValidator
 from utils.support import regex
 
-from .managers import ProductManager, ProductQuerySet
+from .managers import ProductManager
 
 
 class Product(models.Model):

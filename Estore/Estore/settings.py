@@ -187,7 +187,7 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 ACCOUNT_FORMS = {
-    'signup': 'Estore.forms.CustomSignupForm',
+    'signup': 'allauth_customs.forms.CustomSignupForm',
 }
 SOCIALACCOUNT_LOGIN_ON_GET = True 
 LOGIN_REDIRECT_URL = '/'
