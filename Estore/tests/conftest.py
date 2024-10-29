@@ -186,7 +186,7 @@ def product_samples(
     2 categories named 'clothes' and 'toys'.
     2 variations named 'color' and 'size'.
     2 variation options to color (red, green) and 1 to size (XL).
-    1 variation option data to each product (XL, red to female, XL and green to male and XL to kids).
+    1 variation option data to each product (XL and red to female, XL and green to male and XL to kids).
     1 order to each product by the `admin_user` fixture with total_items eq 1 and status PAID.
     1 evaluation to each product (BAD, GOOD and GREAT respectively).
     """
@@ -244,13 +244,13 @@ def product_samples(
     pdt_data = ProductVariationOptionData.objects.bulk_create(
         [
             ProductVariationOptionData(
-                price=pdt_female.base_price, stock=1, product=pdt_female
+                price=pdt_female.base_price, stock=1, product=pdt_female, id=1
             ),
             ProductVariationOptionData(
-                price=pdt_male.base_price, stock=2, product=pdt_male
+                price=pdt_male.base_price, stock=2, product=pdt_male, id=2
             ),
             ProductVariationOptionData(
-                price=pdt_kids.base_price, stock=2, product=pdt_kids
+                price=pdt_kids.base_price, stock=2, product=pdt_kids, id=3
             ),
         ]
     )

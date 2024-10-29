@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load django_bootstrap5 %}
 {% load basestore %}
+{% load cart_tags %}
 
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -25,7 +26,7 @@
     <title>{{store.name}}</title>
 </head>
 
-<body class="mw-100">
+<body class="mw-100" onload="brython()">
 
     <header>
         {% block header %}
@@ -72,9 +73,17 @@
                                 <ul class="navbar-nav justify-content-end flex-grow-1">
 
                                     <li class="nav-item m-0">
-                                        <a class="nav-link" href="#"
+                                        <a class="nav-link" href="{% url "cart:show_cart" %}"
                                             aria-expanded="false">
-                                            <i class="bi bi-cart4 text-light"></i>
+                                            <div class="position-relative">
+                                                <i class="bi bi-cart4 text-light"></i>
+                                                {% if request.session.cart %}
+                                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                                        {{request.session.cart|get_cart_quantity}}
+                                                    </span>
+                                                {% endif %}
+                                              </div>
+                                              
                                         </a>
                                     </li>
 

@@ -1,6 +1,6 @@
 from typing import Any
 
-from django.views.generic import ListView, DetailView, View
+from django.views.generic import ListView, DetailView
 
 from .models import Product, ProductCategory
 from .managers import ProductQuerySet
@@ -51,7 +51,6 @@ class ProductDetail(DetailView):
 
             variations.append(variation_options)
 
-        print(variations)
         context['variations'] = variations
         context['variation_data'] = data
         context['categories'] = ProductCategory.objects.filter(product=product)

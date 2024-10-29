@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+{% load cart_tags %}
+{% load django_bootstrap5 %}
+{% block content %}
+
+<div class="container d-flex flex-column justify-content-center align-items-center" style="min-height: 80vh;">
+    {% if request.session.cart %}
+    <div class="row gy-3 border rounded shadow-lg p-4 bg-light" style="max-width: 800px; width: 100%;">
+            {% bootstrap_messages %}
+            {% for data in product_variation_options_data %}
+                <div class="col-12 col-md-3 d-flex justify-content-center align-items-center mb-3">
+                    <img src="{{ data.product.product.image.url }}" alt="Product Image" class="img-fluid rounded border" style="max-width: 100px;">
+                </div>
+
+                <div class="col-12 col-md-7">
+                    <h5 class="mb-1 fs-6 fw-bold text-dark">{{ data.product.product.name }}</h5>
+                    <p class="small text-muted mb-1">
+                        {% for opt in data.product.options.all %}
+                            {{ opt.option_value }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </p>
+                    <p class="text-secondary">
+                        <span class="fw-semibold">{{ data.amount }}</span>
+                    </p>
+                </div>
+
+                <div class="col-12 col-md-2 d-flex justify-content-center align-items-center">
+                    <div class="d-flex flex-column align-items-center">
+                        <a href="{% url 'cart:manage' data.product.pk %}?action=decrease" class="btn p-1" title="Decrease Quantity">
+                            <i class="bi bi-dash-circle text-warning" style="font-size: 0.9rem;"></i>
+                        </a>
+                        <span class="badge border border-primary text-primary my-1">{{ data.qtd }}</span>
+                        <a href="{% url 'cart:manage' data.product.pk %}?action=increase" class="btn p-1" title="Add Quantity">
+                            <i class="bi bi-plus-circle text-success" style="font-size: 0.9rem;"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-12 d-flex justify-content-end align-items-center">
+                    <a href="{% url 'cart:manage' data.product.pk %}?action=remove" class="rm-btn btn btn-outline-danger btn-sm" title="Remove from Cart">
+                        <i class="bi bi-x-circle"></i> Remove
+                    </a>
+                </div>
+            
+                <hr class="my-3">
+            {% endfor %}
+            <div class="col-12 d-flex justify-content-end mt-3">
+                <a href="#" class="btn btn-primary btn-lg">
+                    Buy for {{ product_variation_options_data|get_cart_total_amount }}
+                </a>
+            </div>
+        </div>
+
+    {% else %}
+        <p>
+            {% url 'products:products' as products_url %}
+            {% blocktranslate  %}
+                You do not have any products in your cart yet <a href="{{products_url}}">see our products</a>.
+            {% endblocktranslate %}
+        </p>
+    {% endif %}
+</div>
+
+
+{% endblock content %}
