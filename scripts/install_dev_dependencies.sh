@@ -1,5 +1,5 @@
 #!/bin/sh
 
-if [ ${ENVIRONMENT} = "development" ]; then
-    pip install -r requirements-dev.txt --root-user-action=ignore;
+if [ "${ENVIRONMENT}" = "development" ]; then
+    pip install -r requirements-dev.txt --no-cache-dir --root-user-action=ignore;
 fi
