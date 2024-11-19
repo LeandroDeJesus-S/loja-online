@@ -14,8 +14,12 @@ RUN addgroup docker && \
     python3 -m venv /venv && \
     /venv/bin/pip3 install --upgrade pip --no-cache-dir && \
     /venv/bin/pip3 install -r requirements.txt --no-cache-dir --root-user-action=ignore && \
+    #
     mkdir -p -m 775 /data/web/static && \
+    mkdir -p -m 775 /data/web/media && \
+    #
     chown -R storeuser:docker /data/web/static && \
+    chown -R storeuser:docker /data/web/media && \
     chown -R storeuser:docker /app && \
     chown -R storeuser:docker /venv && \
     chmod -R 775 /app && \

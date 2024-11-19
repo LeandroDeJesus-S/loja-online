@@ -108,7 +108,9 @@ class UserAddress(models.Model):
         on_delete=models.DO_NOTHING,
         verbose_name=_("User"),
         related_name='user_address',
-        related_query_name='user_address',
+        related_query_name='user_addr',
+        null=True,
+        blank=True,
     )
     address = models.ForeignKey(
         Address,
@@ -116,6 +118,8 @@ class UserAddress(models.Model):
         verbose_name=_("Address"),
         related_name='address_user_addresses',
         related_query_name='address_user_address',
+        null=True,
+        blank=True,
     )
 
     def __str__(self) -> str:

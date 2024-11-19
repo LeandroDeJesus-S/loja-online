@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+
+<div class="container min-vh-80 d-flex flex-column justify-content-center">
+    <form action="{% url 'disable_profile' %}" method="post">{% csrf_token %}
+        <h1 class="fs-3">{% trans "Are you sure you want to deactivate your account?" %}</h1>
+        <button type="submit" class="btn btn-danger">{% trans "Confirm" %}</button>
+        <a href="{% url 'user_profile' %}" class="btn btn-success">{% trans "Cancel" %}</a>
+    </form>
+</div>
+
+{% endblock content %}

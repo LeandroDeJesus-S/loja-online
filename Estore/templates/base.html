@@ -35,6 +35,9 @@
                 <div class="row row-cols-3 vw-100 justify-content-center align-items-center">
                     <div class="col-4 col-md-2 ps-2">
                         <a class="navbar-brand" href="/">
+                            {% if store.logo %}
+                                <img src="{{store.logo.url}}" width="20rem" class="img-thubnail">
+                            {% endif %}
                             {{store.name}}
                         </a>
                     </div>
@@ -89,6 +92,11 @@
 
                                     <li class="nav-item m-0">
                                         <a class="nav-link {% if request.path == "/" %} active {% endif %}" aria-current="page" href="/">{% trans "Home" %}</a>
+                                    </li>
+
+                                    <li class="nav-item m-0">
+                                        {% url "user_profile" as profile_url %}
+                                        <a class="nav-link {% if request.path == profile_url %} active {% endif %}" aria-current="page" href="{{profile_url}}">{% trans "Profile" %}</a>
                                     </li>
                                                                         
                                     {% if not request.user.is_authenticated %}

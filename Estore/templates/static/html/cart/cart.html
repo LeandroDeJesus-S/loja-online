@@ -5,7 +5,7 @@
 {% load django_bootstrap5 %}
 {% block content %}
 
-<div class="container d-flex flex-column justify-content-center align-items-center" style="min-height: 80vh;">
+<div class="container d-flex flex-column justify-content-center align-items-center py-4" style="min-height: 80vh;">
     {% if request.session.cart %}
     <div class="row gy-3 border rounded shadow-lg p-4 bg-light" style="max-width: 800px; width: 100%;">
             {% bootstrap_messages %}
@@ -28,11 +28,13 @@
 
                 <div class="col-12 col-md-2 d-flex justify-content-center align-items-center">
                     <div class="d-flex flex-column align-items-center">
-                        <a href="{% url 'cart:manage' data.product.pk %}?action=decrease" class="btn p-1" title="Decrease Quantity">
+                        <a href="{% url 'cart:manage' data.product.pk %}?action=decrease" class="btn p-1 {% if data.qtd == 1 %}disabled{% endif %}" title="Decrease Quantity">
                             <i class="bi bi-dash-circle text-warning" style="font-size: 0.9rem;"></i>
                         </a>
+
                         <span class="badge border border-primary text-primary my-1">{{ data.qtd }}</span>
-                        <a href="{% url 'cart:manage' data.product.pk %}?action=increase" class="btn p-1" title="Add Quantity">
+
+                        <a href="{% url 'cart:manage' data.product.pk %}?action=increase" class="btn p-1 {% if data.qtd == data.product.stock %}disabled{% endif %}" title="Add Quantity">
                             <i class="bi bi-plus-circle text-success" style="font-size: 0.9rem;"></i>
                         </a>
                     </div>

@@ -1,0 +1,13 @@
+{% load django_bootstrap5 %}
+{% load i18n %}
+<fieldset>
+<legend>{% trans "Account data" %}</legend>
+    {% bootstrap_form user_form layout="floating" %}
+</fieldset>
+
+<fieldset>
+    <legend>{% trans "Address data" %}</legend><br>
+
+    {% bootstrap_form user_address_form layout="floating" %}
+    {% bootstrap_form address_form layout="floating" %}
+</fieldset>

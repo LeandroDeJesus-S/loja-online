@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load django_bootstrap5 %}
+
+{% block content %}
+
+<div class="container p-5">
+    <form action="{% url "user_profile" %}" method="post">
+        {% include 'partials/_profile_forms.html' %}
+    </form>
+    <br>
+    <div class="container-fluid px-0">
+        <div class="row row-cols-1 row-cols-md-3 gy-2">
+            <div class="col">
+                <a href="{% url 'edit_profile' %}" class="btn btn-primary d-block">{% trans "Edit data" %}</a>
+            </div>
+            <div class="col">
+                <a href="{% url 'account_change_password' %}" class="btn btn-warning d-block">{% trans "Change password" %}</a>
+            </div>
+            <div class="col">
+                <a href="{% url 'disable_profile' %}" class="btn btn-danger d-block">{% trans "Disable profile" %}</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

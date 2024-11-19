@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load django_bootstrap5 %}
+
+{% block content %}
+
+<div class="container p-5">
+    <form action="{% url "edit_profile" %}" method="post">{% csrf_token %}
+        {% include "partials/_profile_forms.html" %}
+        
+        <div class="d-grid d-md-block gap-2">
+            <button class="btn btn-primary" type="submit">{% trans "Save" %}</button>
+            <a class="btn btn-info" href="{% url "user_profile" %}">{% trans "Cancel" %}</a>
+        </div>
+    </form>
+</div>
+{% endblock content %}

@@ -1,3 +1,7 @@
+.min-vh-80 {
+    min-height: 80vh
+}
+
 .card.product-card:hover {
     scale: 105%;
     transition: scale 200ms linear 0s;
