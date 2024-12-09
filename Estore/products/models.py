@@ -324,6 +324,10 @@ class ProductVariationOptionData(models.Model):
         options (ManyToManyField): the referenced field to the options.
         product (ForeignKey): the reference to the product
     """
+    class Meta:
+        verbose_name = _('product variation option data')
+        verbose_name_plural = _('product variation option data')
+
     _PRICE_MAX_DIGITS = 10
     _PRICE_DECIMAL_PLACES = 2
     _MIN_PRICE = Decimal("0")

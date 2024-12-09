@@ -12,7 +12,7 @@ class ListProducts(ListView):
     model = Product
     queryset = Product.objects.available()
     paginate_by = 5
-    ordering = '-pk'
+    ordering = "-pk"
 
     def get_queryset(self) -> ProductQuerySet:
         """returns the queryset ordered or filtered
@@ -38,20 +38,22 @@ class ProductDetail(DetailView):
         context.
         """
         context = super().get_context_data(**kwargs)
-        product = context['product']
+        product = context["product"]
 
         variations = []
-                
-        data = product.variation_options_data.prefetch_related('options', 'options__variation', 'data_files')
+
+        data = product.variation_options_data.prefetch_related(
+            "options", "options__variation", "data_files"
+        )
         for d in data:
             variation_options = [
-                (option.variation.name, option.option_value) 
+                (option.variation.name, option.option_value)
                 for option in d.options.all()
             ]
 
             variations.append(variation_options)
 
-        context['variations'] = variations
-        context['variation_data'] = data
-        context['categories'] = ProductCategory.objects.filter(product=product)
+        context["variations"] = variations
+        context["variation_data"] = data
+        context["categories"] = ProductCategory.objects.filter(product=product)
         return context

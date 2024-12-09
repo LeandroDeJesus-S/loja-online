@@ -3,20 +3,13 @@ from .models import (
     Product,
     ProductVariationFile,
     ProductVariationOption,
+    ProductVariationOptionData,
 )
-from .forms import ProductVariationForm
 
 
 class ProductInline(admin.TabularInline):
     model = Product
     exclude = ()
-    extra = 1
-
-
-class VariationInline(admin.TabularInline):
-    model = Product.variations.through
-    exclude = ()
-    form = ProductVariationForm
     extra = 1
 
 
@@ -34,5 +27,11 @@ class ProductCategoryInline(admin.TabularInline):
 
 class VariationFileInline(admin.TabularInline):
     model = ProductVariationFile
+    exclude = ()
+    extra = 1
+
+
+class VariationOptionDataInline(admin.StackedInline):
+    model = ProductVariationOptionData
     exclude = ()
     extra = 1

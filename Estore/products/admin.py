@@ -10,12 +10,18 @@ from .models import (
     ProductVariationOption,
     ProductVariationOptionData,
 )
-from .admin_inlines import VariationFileInline, VariationOptionInline
+from .admin_inlines import (
+    VariationFileInline,
+    VariationOptionInline,
+    VariationOptionDataInline,
+)
 
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    readonly_fields = ['slug']
+    readonly_fields = ["slug"]
+    inlines = [VariationOptionDataInline]
+    exclude = ("variations",)
 
 
 @admin.register(ProductVariation)
@@ -29,12 +35,13 @@ class ProductVariationOptionAdmin(admin.ModelAdmin): ...
 
 @admin.register(ProductVariationOptionData)
 class ProductVariationOptionDataAdmin(admin.ModelAdmin):
-    list_display = ['price', 'stock', 'product', 'options_']
+    list_display = ["price", "stock", "product", "options_"]
     inlines = [VariationFileInline]
+    search_fields = ['product']
 
-    @admin.display(description='options')
+    @admin.display(description="options")
     def options_(self, obj):
-        return ', '.join([str(o) for o in obj.options.all()])
+        return ", ".join([str(o) for o in obj.options.all()])
 
 
 @admin.register(ProductVariationFile)
